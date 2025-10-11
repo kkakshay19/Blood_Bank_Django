@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donor Section - Blood Donor System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  {% load static %}
+  <link href="{% static 'donor.css' %}" rel="stylesheet">
+  <style>
+    .error-message {
+      color: #e53e3e;
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">
+            <i class="fas fa-heartbeat"></i>
+          </div>
+          <div class="logo-text">
+            <h1>Blood Donor System</h1>
+            <p>Save Lives Through Donation</p>
+          </div>
+        </div>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="{% url 'index' %}">Home</a></li>
+            <li><a href="{% url 'index' %}#about">About</a></li>
+            <li><a href="{% url 'index' %}#contact">Contact</a></li>
+            <li><a href="{% url 'index' %}#help">Help</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div class="form-container">
+        <div class="tabs">
+          <button class="tab active" data-form="login">
+            <i class="fas fa-sign-in-alt"></i> Login
+          </button>
+          <button class="tab" data-form="register">
+            <i class="fas fa-user-plus"></i> Register
+          </button>
+        </div>
+
+        <!-- Login Form -->
+        <div id="login" class="form active">
+          <div class="form-content">
+            <div class="form-header">
+              <h2>Welcome Back</h2>
+              <p>Sign in to your donor account</p>
+            </div>
+            <form method="post" name="login">
+              {% csrf_token %}
+              <div class="form-group">
+                <label for="{{ login_form.username.id_for_label }}">Email</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-envelope"></i>
+                  {{ login_form.username }}
+                </div>
+                {% if login_form.username.errors %}
+                  <div class="error-message">{{ login_form.username.errors.0 }}</div>
+                {% endif %}
+              </div>
+              <div class="form-group">
+                <label for="{{ login_form.password.id_for_label }}">Password</label>
+                <div class="input-wrapper">
+                  <i class="fas fa-lock"></i>
+                  {{ login_form.password }}
+                </div>
+                {% if login_form.password.errors %}
+                  <div class="error-message">{{ login_form.password.errors.0 }}</div>
+                {% endif %}
+              </div>
+              {% if login_form.non_field_errors %}
+                <div class="error-message">{{ login_form.non_field_errors.0 }}</div>
+              {% endif %}
+              <button type="submit" name="login" class="btn">
+                <i class="fas fa-sign-in-alt"></i> Sign In
+              </button>
+            </form>
+            <div class="form-footer">
+              <p>Don't have an account? <a href="#" onclick="showForm('register')">Register here</a></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register" class="form">
+          <div class="form-content">
+            <div class="form-header">
+              <h2>Join Our Mission</h2>
+              <p>Become a blood donor and save lives</p>
+            </div>
+            <form method="post" name="register">
+              {% csrf_token %}
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="{{ register_form.full_name.id_for_label }}">Full Name</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    {{ register_form.full_name }}
+                  </div>
+                  {% if register_form.full_name.errors %}
+                    <div class="error-message">{{ register_form.full_name.errors.0 }}</div>
+                  {% endif %}
+                </div>
+                <div class="form-group">
+                  <label for="{{ register_form.email.id_for_label }}">Email</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-envelope"></i>
+                    {{ register_form.email }}
+                  </div>
+                  {% if register_form.email.errors %}
+                    <div class="error-message">{{ register_form.email.errors.0 }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="{{ register_form.blood_group.id_for_label }}">Blood Group</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-tint"></i>
+                    {{ register_form.blood_group }}
+                  </div>
+                  {% if register_form.blood_group.errors %}
+                    <div class="error-message">{{ register_form.blood_group.errors.0 }}</div>
+                  {% endif %}
+                </div>
+                <div class="form-group">
+                    <label for="{{ register_form.contact_number.id_for_label }}">Contact Number</label>
+                    <div class="input-wrapper">
+                      <i class="fas fa-phone"></i>
+                      {{ register_form.contact_number }}
+                    </div>
+                    {% if register_form.contact_number.errors %}
+                      <div class="error-message">{{ register_form.contact_number.errors.0 }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="{{ register_form.age.id_for_label }}">Age</label>
+                    <div class="input-wrapper">
+                      <i class="fas fa-birthday-cake"></i>
+                      {{ register_form.age }}
+                    </div>
+                    {% if register_form.age.errors %}
+                      <div class="error-message">{{ register_form.age.errors.0 }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="form-group">
+                    <label for="{{ register_form.gender.id_for_label }}">Gender</label>
+                    <div class="input-wrapper">
+                      <i class="fas fa-venus-mars"></i>
+                      {{ register_form.gender }}
+                    </div>
+                    {% if register_form.gender.errors %}
+                      <div class="error-message">{{ register_form.gender.errors.0 }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="{{ register_form.weight.id_for_label }}">Weight (kg)</label>
+                    <div class="input-wrapper">
+                      <i class="fas fa-weight"></i>
+                      {{ register_form.weight }}
+                    </div>
+                    {% if register_form.weight.errors %}
+                      <div class="error-message">{{ register_form.weight.errors.0 }}</div>
+                    {% endif %}
+                  </div>
+                  <div class="form-group">
+                    <label for="{{ register_form.height.id_for_label }}">Height (cm)</label>
+                    <div class="input-wrapper">
+                      <i class="fas fa-ruler-vertical"></i>
+                      {{ register_form.height }}
+                    </div>
+                    {% if register_form.height.errors %}
+                      <div class="error-message">{{ register_form.height.errors.0 }}</div>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="{{ register_form.address.id_for_label }}">Address</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-map-marker-alt"></i>
+                    {{ register_form.address }}
+                  </div>
+                  {% if register_form.address.errors %}
+                    <div class="error-message">{{ register_form.address.errors.0 }}</div>
+                  {% endif %}
+                </div>
+                <div class="form-group">
+                  <label for="{{ register_form.medical_conditions.id_for_label }}">Medical Conditions</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-notes-medical"></i>
+                    {{ register_form.medical_conditions }}
+                  </div>
+                  {% if register_form.medical_conditions.errors %}
+                    <div class="error-message">{{ register_form.medical_conditions.errors.0 }}</div>
+                  {% endif %}
+                </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="{{ register_form.password1.id_for_label }}">Password</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    {{ register_form.password1 }}
+                  </div>
+                  {% if register_form.password1.errors %}
+                    <div class="error-message">{{ register_form.password1.errors.0 }}</div>
+                  {% endif %}
+                </div>
+                <div class="form-group">
+                  <label for="{{ register_form.password2.id_for_label }}">Confirm Password</label>
+                  <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    {{ register_form.password2 }}
+                  </div>
+                  {% if register_form.password2.errors %}
+                    <div class="error-message">{{ register_form.password2.errors.0 }}</div>
+                  {% endif %}
+                </div>
+              </div>
+              {% if register_form.non_field_errors %}
+                <div class="error-message">{{ register_form.non_field_errors.0 }}</div>
+              {% endif %}
+              <button type="submit" name="register" class="btn">
+                <i class="fas fa-user-plus"></i> Register as Donor
+              </button>
+            </form>
+            <div class="form-footer">
+              <p>Already have an account? <a href="#" onclick="showForm('login')">Sign in here</a></p>
+              <p style="margin-top: 1rem; text-align: center; color: #718096;">
+                Already registered? <a href="{% url 'donor_dashboard' %}" style="color: #e53e3e; text-decoration: none; font-weight: 500;">Access Your Dashboard</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="features">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-heart"></i>
+          </div>
+          <h3>Save Lives</h3>
+          <p>Your blood donation can save up to 3 lives and help patients in critical need.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3>Safe & Secure</h3>
+          <p>All donations are processed safely with strict medical standards and protocols.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <h3>Quick Process</h3>
+          <p>Simple registration and donation process that takes only a few minutes to complete.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-content">
+        <div>
+          <p>&copy; 2025 Blood Donor System. All rights reserved.</p>
+        </div>
+        <ul class="footer-links">
+          <li><a href="#privacy">Privacy Policy</a></li>
+          <li><a href="#terms">Terms of Service</a></li>
+          <li><a href="#faq">FAQ</a></li>
+        </ul>
+        <div class="social-links">
+          <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+          <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const tabs = document.querySelectorAll('.tab');
+      const forms = document.querySelectorAll('.form');
+      const activeForm = "{{ active_form|default:'login' }}";
+
+      function showForm(formId) {
+        forms.forEach(form => form.classList.remove('active'));
+        tabs.forEach(tab => tab.classList.remove('active'));
+
+        document.getElementById(formId).classList.add('active');
+        document.querySelector(`.tab[data-form="${formId}"]`).classList.add('active');
+      }
+
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const formId = tab.getAttribute('data-form');
+          showForm(formId);
+        });
+      });
+
+      // Show the initial form based on the context variable
+      showForm(activeForm);
+    });
+  </script>
+
+</body>
+</html>

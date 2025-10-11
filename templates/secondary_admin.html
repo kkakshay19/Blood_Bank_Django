@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secondary Admin Dashboard - Blood Donor System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  {% load static %}
+  <link href="{% static 'adminmain.css' %}" rel="stylesheet">
+  <!-- Chart.js for analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">
+            <i class="fas fa-user-shield"></i>
+          </div>
+          <div class="logo-text">
+            <h1>Secondary Admin Dashboard</h1>
+            <p>Blood Donor System</p>
+          </div>
+        </div>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="{% url 'index' %}">Home</a></li>
+            <li><a href="{% url 'admin_logout' %}">Logout</a></li>
+          </ul>
+        </nav>
+        <div class="user-info">
+          <span class="user-role">
+            <i class="fas fa-user-shield"></i> Secondary Admin
+          </span>
+          <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="dashboard-container">
+        <div class="dashboard-header">
+          <h2>Secondary Admin Dashboard</h2>
+          <p>Manage donors, inventory, and patient requests</p>
+        </div>
+
+        <div class="dashboard-content">
+          <div class="sidebar">
+            <h3>Navigation</h3>
+            <ul class="nav-menu">
+              <li><button data-section="dashboard" class="active">Dashboard</button></li>
+              <li><button data-section="donors">Donor Management</button></li>
+              <li><button data-section="receivers">Patient Requests</button></li>
+              <li><button data-section="inventory">Blood Inventory</button></li>
+              <li><button data-section="analytics">Reports</button></li>
+            </ul>
+          </div>
+
+          <div class="content-area">
+        <!-- Dashboard Section -->
+            <section id="section-dashboard" class="section active">
+              <div class="stats-grid">
+                <div class="stat-card">
+                  <div class="stat-number" id="stat-donors">0</div>
+                  <div class="stat-label">Active Donors</div>
+            </div>
+                <div class="stat-card">
+                  <div class="stat-number" id="stat-requests">0</div>
+                  <div class="stat-label">Pending Requests</div>
+            </div>
+                <div class="stat-card">
+                  <div class="stat-number" id="stat-units">0</div>
+                  <div class="stat-label">Total Units in Inventory</div>
+            </div>
+          </div>
+
+              <div class="data-table">
+                <h3>Recent Donor Applications</h3>
+              <div class="table-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Blood</th>
+                        <th>Contact</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                  </thead>
+                  <tbody id="recent-donors"></tbody>
+                </table>
+              </div>
+            </div>
+
+              <div class="data-table">
+                <h3>Inventory Breakdown</h3>
+                <canvas id="inventoryChart" height="100"></canvas>
+          </div>
+        </section>
+
+        <!-- Donor Management -->
+            <section id="section-donors" class="section">
+              <div class="data-table">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                  <h3>Donor Management</h3>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <button id="add-donor-btn" class="btn">Add Donor</button>
+                    <button id="export-donors" class="btn secondary">Export CSV</button>
+            </div>
+          </div>
+            <div class="table-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Blood</th>
+                        <th>City</th>
+                        <th>Contact</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                </thead>
+                <tbody id="donor-table"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Receivers / Patients -->
+            <section id="section-receivers" class="section">
+              <div class="data-table">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                  <h3>Patient Requests</h3>
+                  <button id="export-requests" class="btn secondary">Export CSV</button>
+          </div>
+            <div class="table-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Patient</th>
+                        <th>Blood</th>
+                        <th>Units</th>
+                        <th>Hospital</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                      </tr>
+                  </thead>
+                  <tbody id="requests-table"></tbody>
+                </table>
+              </div>
+          </div>
+        </section>
+
+        <!-- Inventory -->
+            <section id="section-inventory" class="section">
+              <div class="data-table">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                  <h3>Blood Inventory</h3>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <button id="add-inventory" class="btn">Add Units</button>
+                    <button id="export-inventory" class="btn secondary">Export CSV</button>
+            </div>
+          </div>
+              <div class="table-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Blood</th>
+                        <th>Units</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                  <tbody id="inventory-table"></tbody>
+                </table>
+              </div>
+            </div>
+
+              <div class="data-table">
+                <h3>Quick Analytics</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                  <div style="text-align: center; padding: 1rem; background: #f7fafc; border-radius: 10px;">
+                    <div style="font-size: 1.5rem; font-weight: 600; color: #e53e3e;" id="quick-total">0</div>
+                    <div style="color: #718096; font-size: 0.875rem;">Total Units</div>
+                  </div>
+                  <div style="text-align: center; padding: 1rem; background: #f7fafc; border-radius: 10px;">
+                    <div style="font-size: 1.5rem; font-weight: 600; color: #e53e3e;" id="near-expiry">0</div>
+                    <div style="color: #718096; font-size: 0.875rem;">Near Expiry Alerts</div>
+                  </div>
+                  <div style="text-align: center; padding: 1rem; background: #f7fafc; border-radius: 10px;">
+                    <div style="font-size: 1.5rem; font-weight: 600; color: #e53e3e;" id="most-stocked">-</div>
+                    <div style="color: #718096; font-size: 0.875rem;">Most Stocked</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Analytics -->
+            <section id="section-analytics" class="section">
+              <div class="data-table">
+                <h3>Units Collected (last 6 months)</h3>
+              <canvas id="collectedChart" height="200"></canvas>
+            </div>
+
+              <div class="data-table">
+                <h3>Requests by Blood Group</h3>
+              <canvas id="requestsChart" height="200"></canvas>
+          </div>
+
+              <div class="data-table">
+                <h3>Reports</h3>
+                <button id="download-report" class="btn">Download Summary Report</button>
+          </div>
+        </section>
+          </div>
+        </div>
+      </div>
+
+      <div class="back-link">
+        <a href="{% url 'index' %}">Back to Home</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modals (hidden by default) -->
+  <div id="modal-root"></div>
+
+  <script>
+    // ---------- Sample data (in-memory) ----------
+    let donors = [
+      {id:1, name:'Rohan Kumar', blood:'A+', city:'Kochi', contact:'+91 98765 43210', status:'pending', notes:'First time'},
+      {id:2, name:'Neha Gupta', blood:'B-', city:'Bengaluru', contact:'+91 91234 56789', status:'approved', notes:'Regular donor'},
+      {id:3, name:'Sam Peterson', blood:'O+', city:'Calicut', contact:'+91 99876 54321', status:'rejected', notes:'Low hemoglobin'}
+    ];
+
+    let requests = [
+      {id:1, patient:'Maya S', blood:'A+', units:2, hospital:'City Hospital', status:'pending', tracked:false},
+      {id:2, patient:'Ravi P', blood:'O-', units:1, hospital:'General Hospital', status:'approved', tracked:true}
+    ];
+
+    let inventory = [
+      {blood:'A+', units:10, added:'2025-08-01'},
+      {blood:'A-', units:3, added:'2025-08-15'},
+      {blood:'B+', units:7, added:'2025-08-20'},
+      {blood:'O+', units:12, added:'2025-07-28'},
+      {blood:'AB+', units:2, added:'2025-08-05'}
+    ];
+
+    // ---------- Utilities ----------
+    function $(s){return document.querySelector(s)}
+    function $all(s){return Array.from(document.querySelectorAll(s))}
+
+    // ---------- Rendering ----------
+    function renderStats(){
+      $('#stat-donors').innerText = donors.filter(d=>d.status==='approved').length;
+      $('#stat-requests').innerText = requests.filter(r=>r.status==='pending').length;
+      $('#stat-units').innerText = inventory.reduce((s,i)=>s+i.units,0);
+    }
+
+    function renderRecentDonors(){
+      const tbody = $('#recent-donors'); tbody.innerHTML='';
+      donors.slice(0,8).forEach(d=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${d.name}</td><td>${d.blood}</td><td>${d.contact}</td><td><span class="badge ${d.status==='approved'? 'approved' : d.status==='pending' ? 'pending' : 'rejected'}">${d.status}</span></td><td><button onclick="openDonorModal(${d.id})" class="btn secondary">View</button></td>`;
+        tbody.appendChild(tr);
+      })
+    }
+
+    function renderDonorTable(){
+      const tbody = $('#donor-table'); tbody.innerHTML='';
+      donors.forEach((d,i)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${i+1}</td><td>${d.name}</td><td>${d.blood}</td><td>${d.city}</td><td>${d.contact}</td><td><span class="badge ${d.status==='approved'? 'approved' : d.status==='pending' ? 'pending' : 'rejected'}">${d.status}</span></td><td><button onclick="openDonorModal(${d.id})" class="btn secondary" style="margin-right: 0.5rem;">View</button><button onclick="approveDonor(${d.id})" class="btn">Approve</button></td>`;
+        tbody.appendChild(tr);
+      })
+    }
+
+    function renderRequestsTable(){
+      const tbody = $('#requests-table'); tbody.innerHTML='';
+      requests.forEach((r,i)=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${i+1}</td><td>${r.patient}</td><td>${r.blood}</td><td>${r.units}</td><td>${r.hospital}</td><td><span class="badge ${r.status==='approved'? 'approved' : r.status==='pending' ? 'pending' : 'rejected'}">${r.status}</span></td><td><button onclick="viewRequest(${r.id})" class="btn secondary" style="margin-right: 0.5rem;">View</button><button onclick="approveRequest(${r.id})" class="btn">Approve</button></td>`;
+        tbody.appendChild(tr);
+      })
+    }
+
+    function renderInventoryTable(){
+      const tbody = $('#inventory-table'); tbody.innerHTML='';
+      inventory.forEach(i=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${i.blood}</td><td>${i.units}</td><td><button onclick="adjustInventory('${i.blood}')" class="btn secondary">Adjust</button></td>`;
+        tbody.appendChild(tr);
+      })
+    }
+
+    // ---------- Actions ----------
+    function openDonorModal(id){
+      const d = donors.find(x=>x.id===id);
+      showModal(`<div class="modal-content">
+        <div class="modal-header">
+          <h3>Donor: ${d.name}</h3>
+          <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="form-group">
+          <label>Blood Group</label>
+          <div style="color: #2d3748; font-weight: 500;">${d.blood}</div>
+        </div>
+        <div class="form-group">
+          <label>City</label>
+          <div style="color: #2d3748; font-weight: 500;">${d.city}</div>
+        </div>
+        <div class="form-group">
+          <label>Contact</label>
+          <div style="color: #2d3748; font-weight: 500;">${d.contact}</div>
+        </div>
+        <div class="form-group">
+          <label>Notes</label>
+          <div style="color: #2d3748; font-weight: 500;">${d.notes || '-'}</div>
+        </div>
+        <div class="modal-footer">
+          <button onclick="closeModal()" class="btn secondary">Close</button>
+          <button onclick="approveDonor(${d.id})" class="btn">Approve</button>
+          <button onclick="rejectDonor(${d.id})" class="btn" style="background: #dc2626;">Reject</button>
+        </div>
+      </div>`)
+    }
+
+    function approveDonor(id){
+      donors = donors.map(d => d.id===id ? {...d, status:'approved'} : d);
+      refreshAll();
+      closeModal();
+    }
+    function rejectDonor(id){
+      donors = donors.map(d => d.id===id ? {...d, status:'rejected'} : d);
+      refreshAll(); closeModal();
+    }
+
+    function viewRequest(id){
+      const r = requests.find(x=>x.id===id);
+      showModal(`<div class="bg-white rounded shadow p-4 max-w-xl mx-auto">
+        <h3 class="text-lg font-semibold mb-2">Request: ${r.patient}</h3>
+        <div class="text-sm text-slate-600">Blood: ${r.blood} • Units: ${r.units} • Hospital: ${r.hospital}</div>
+        <p class="mt-3 text-sm">Status: ${r.status}</p>
+        <div class="mt-4 flex gap-2 justify-end">
+          <button onclick="closeModal()" class="px-3 py-1 rounded bg-slate-200">Close</button>
+          <button onclick="approveRequest(${r.id})" class="px-3 py-1 rounded bg-green-600 text-white">Approve</button>
+        </div>
+      </div>`)
+    }
+
+    function approveRequest(id){
+      const req = requests.find(r=>r.id===id);
+      // simple inventory deduction: find matching blood and reduce units
+      const inv = inventory.find(i=>i.blood===req.blood);
+      if(inv && inv.units >= req.units){
+        inv.units -= req.units;
+        requests = requests.map(r=>r.id===id?{...r,status:'approved',tracked:true}:r);
+        refreshAll(); closeModal();
+        alert('Request approved and inventory updated.');
+      } else {
+        alert('Insufficient inventory to approve this request.');
+      }
+    }
+
+    function adjustInventory(blood){
+      const i = inventory.find(x=>x.blood===blood);
+      showModal(`<div class="modal-content">
+        <div class="modal-header">
+          <h3>Adjust ${blood}</h3>
+          <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="form-group">
+          <label>Current Units: ${i.units}</label>
+        </div>
+        <div class="form-group">
+          <label>Change amount (+/-)</label>
+          <input id="adjust-amt" type="number" value="0" />
+        </div>
+        <div class="modal-footer">
+          <button onclick="closeModal()" class="btn secondary">Cancel</button>
+          <button onclick="confirmAdjust('${blood}')" class="btn">Apply</button>
+        </div>
+      </div>`)
+    }
+    function confirmAdjust(blood){
+      const amt = parseInt($('#adjust-amt').value||0,10);
+      inventory = inventory.map(i=>i.blood===blood?{...i, units: i.units + amt}:i);
+      refreshAll(); closeModal();
+    }
+
+    // ---------- Modals ----------
+    function showModal(html){
+      const root = $('#modal-root');
+      root.innerHTML = `<div class="modal-backdrop">
+        ${html}
+      </div>`;
+    }
+    function closeModal(){ $('#modal-root').innerHTML=''; }
+
+    // ---------- Exports & Reports ----------
+    function toCSV(rows, columns){
+      const header = columns.join(',') + '\n';
+      const body = rows.map(r => columns.map(c=>`"${(r[c]!==undefined?r[c]:'')+''}"`).join(',')).join('\n');
+      return header + body;
+    }
+    function download(filename, text){
+      const a = document.createElement('a');
+      a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(text);
+      a.download = filename;
+      a.click();
+    }
+
+    // ---------- Charts -----------
+    let inventoryChart, collectedChart, requestsChart;
+    function buildCharts(){
+      const ctx = document.getElementById('inventoryChart').getContext('2d');
+      const labels = inventory.map(i=>i.blood);
+      const data = inventory.map(i=>i.units);
+      if(inventoryChart) inventoryChart.destroy();
+      inventoryChart = new Chart(ctx, {type:'doughnut', data:{labels, datasets:[{data}]}, options:{responsive:true}});
+
+      // collectedChart: fake last 6 months
+      const ctx2 = document.getElementById('collectedChart').getContext('2d');
+      const months = ['Apr','May','Jun','Jul','Aug','Sep'];
+      const collected = months.map((m,i)=>Math.floor(Math.random()*30)+10);
+      if(collectedChart) collectedChart.destroy();
+      collectedChart = new Chart(ctx2, {type:'line', data:{labels:months, datasets:[{label:'Units collected', data:collected, tension:0.3}]}, options:{responsive:true}});
+
+      const ctx3 = document.getElementById('requestsChart').getContext('2d');
+      const groups = ['A+','A-','B+','B-','O+','O-','AB+','AB-'];
+      const reqCounts = groups.map(g=>requests.filter(r=>r.blood===g).length + Math.floor(Math.random()*3));
+      if(requestsChart) requestsChart.destroy();
+      requestsChart = new Chart(ctx3, {type:'bar', data:{labels:groups, datasets:[{label:'Requests', data:reqCounts}]}, options:{responsive:true}});
+    }
+
+    // ---------- Helpers ----------
+    function refreshAll(){
+      renderStats(); renderRecentDonors(); renderDonorTable(); renderRequestsTable(); renderInventoryTable(); buildCharts(); renderQuickAnalytics();
+    }
+
+    function renderQuickAnalytics(){
+      $('#quick-total').innerText = inventory.reduce((s,i)=>s+i.units,0);
+      // near expiry dummy calc
+      $('#near-expiry').innerText = inventory.filter(i=>{ const added = new Date(i.added); const days = (new Date()-added)/86400000; return days>30;}).length;
+      const most = inventory.slice().sort((a,b)=>b.units-a.units)[0]; $('#most-stocked').innerText = most? most.blood : '-';
+    }
+
+    // ---------- Exports ----------
+    $('#export-donors')?.addEventListener('click', ()=>{
+      const csv = toCSV(donors, ['id','name','blood','city','contact','status','notes']); download('donors.csv', csv);
+    });
+    $('#export-requests')?.addEventListener('click', ()=>{
+      const csv = toCSV(requests, ['id','patient','blood','units','hospital','status']); download('requests.csv', csv);
+    });
+    $('#export-inventory')?.addEventListener('click', ()=>{
+      const csv = toCSV(inventory, ['blood','units','added']); download('inventory.csv', csv);
+    });
+
+    // Add Donor modal
+    $('#add-donor-btn')?.addEventListener('click', ()=>{
+      showModal(`<div class="modal-content">
+        <div class="modal-header">
+          <h3>Add New Donor</h3>
+          <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="form-group">
+          <label>Full Name</label>
+          <input id="new-name" placeholder="Enter full name" />
+        </div>
+        <div class="form-group">
+          <label>Blood Group</label>
+          <select id="new-blood">
+            <option value="">Select Blood Group</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>City</label>
+          <input id="new-city" placeholder="Enter city" />
+        </div>
+        <div class="form-group">
+          <label>Contact Number</label>
+          <input id="new-contact" placeholder="Enter contact number" />
+        </div>
+        <div class="form-group">
+          <label>Notes (Optional)</label>
+          <textarea id="new-notes" placeholder="Any additional notes about the donor"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button onclick="closeModal()" class="btn secondary">Cancel</button>
+          <button onclick="createDonor()" class="btn">Add Donor</button>
+        </div>
+      </div>`)
+    });
+
+    function createDonor(){
+      const name = $('#new-name').value.trim();
+      const blood = $('#new-blood').value.trim();
+      const city = $('#new-city').value.trim();
+      const contact = $('#new-contact').value.trim();
+      const notes = $('#new-notes').value.trim();
+
+      // Validation
+      if(!name || !blood || !city || !contact){
+        alert('Please fill in all required fields: Name, Blood Group, City, and Contact');
+        return;
+      }
+
+      // Check if donor already exists
+      const existingDonor = donors.find(d => d.name.toLowerCase() === name.toLowerCase() && d.contact === contact);
+      if(existingDonor){
+        alert('A donor with this name and contact already exists');
+        return;
+      }
+
+      // Add new donor
+      donors.push({
+        id: Date.now(),
+        name,
+        blood,
+        city,
+        contact,
+        notes: notes || '',
+        status: 'pending',
+        dateAdded: new Date().toLocaleDateString()
+      });
+
+      refreshAll();
+      closeModal();
+      alert('Donor added successfully!');
+    }
+
+    // Add inventory
+    $('#add-inventory')?.addEventListener('click', ()=>{
+      showModal(`<div class="modal-content">
+        <div class="modal-header">
+          <h3>Add Blood Units to Inventory</h3>
+          <button class="close-btn" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="form-group">
+          <label>Blood Group</label>
+          <select id="inv-blood">
+            <option value="">Select Blood Group</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Number of Units</label>
+          <input id="inv-units" placeholder="Enter number of units" type="number" min="1" />
+        </div>
+        <div class="modal-footer">
+          <button onclick="closeModal()" class="btn secondary">Cancel</button>
+          <button onclick="createInv()" class="btn">Add Units</button>
+        </div>
+      </div>`)
+    });
+    function createInv(){
+      const blood = $('#inv-blood').value.trim();
+      const units = parseInt($('#inv-units').value||0,10);
+
+      // Validation
+      if(!blood || !units || units <= 0){
+        alert('Please select a blood group and enter a valid number of units (greater than 0)');
+        return;
+      }
+
+      // Find existing inventory entry
+      const existing = inventory.find(i=>i.blood===blood);
+      if(existing){
+        existing.units += units;
+        existing.added = new Date().toISOString().slice(0,10);
+      } else {
+        inventory.push({
+          blood: blood,
+          units: units,
+          added: new Date().toISOString().slice(0,10)
+        });
+      }
+
+      refreshAll();
+      closeModal();
+      alert(`${units} units of ${blood} blood added to inventory successfully!`);
+    }
+
+    // Download single-page summary report
+    $('#download-report')?.addEventListener('click', ()=>{
+      const summary = `Summary Report\nDate: ${new Date().toLocaleString()}\nTotal donors: ${donors.length}\nApproved donors: ${donors.filter(d=>d.status==='approved').length}\nPending requests: ${requests.filter(r=>r.status==='pending').length}\nTotal inventory units: ${inventory.reduce((s,i)=>s+i.units,0)}`;
+      download('summary.txt', summary);
+    });
+
+    // ---------- Section switching (simple) ----------
+    $all('[data-section]').forEach(btn=> btn.addEventListener('click', (e)=>{
+      const s = e.currentTarget.dataset.section;
+      $all('.section').forEach(sec=> sec.classList.remove('active'));
+      $(`#section-${s}`).classList.add('active');
+
+      // Update active button
+      $all('[data-section]').forEach(b=> b.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+
+      window.scrollTo(0,0);
+    }));
+
+    // initialize
+    document.addEventListener('DOMContentLoaded', ()=>{
+      refreshAll();
+    });
+  </script>
+</body>
+</html>

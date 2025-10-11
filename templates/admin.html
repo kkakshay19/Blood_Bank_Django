@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login - Blood Donor System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  {% load static %}
+  <link href="{% static 'admin.css' %}" rel="stylesheet">
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">
+            <i class="fas fa-heartbeat"></i>
+          </div>
+          <div class="logo-text">
+            <h1>Blood Donor System</h1>
+            <p>Save Lives Through Donation</p>
+          </div>
+        </div>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="{% url 'index' %}">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+            <li><a href="#help">Help</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="login-container">
+        <div class="login-header">
+          <div class="admin-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h2>Admin Access</h2>
+          <p>Secure administrative login for system management</p>
+        </div>
+
+        {% if messages %}
+        <div class="messages">
+          {% for message in messages %}
+          <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Tab Navigation -->
+        <div class="tab-container">
+          <button class="tab-button active" onclick="showTab('login')">
+            <i class="fas fa-sign-in-alt"></i> Login
+          </button>
+          <button class="tab-button" onclick="showTab('register')">
+            <i class="fas fa-user-plus"></i> Register
+          </button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" class="login-form" method="post">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="login">
+          <div class="form-group">
+            <label for="{{ login_form.username.id_for_label }}">Username</label>
+            <div class="input-wrapper">
+              <i class="fas fa-user"></i>
+              {{ login_form.username }}
+            </div>
+            {% if login_form.username.errors %}
+              <div class="error">{{ login_form.username.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ login_form.password.id_for_label }}">Password</label>
+            <div class="input-wrapper">
+              <i class="fas fa-lock"></i>
+              {{ login_form.password }}
+            </div>
+            {% if login_form.password.errors %}
+              <div class="error">{{ login_form.password.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <button type="submit" class="btn">
+            <i class="fas fa-sign-in-alt"></i> Sign In
+          </button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" class="login-form" method="post" style="display: none;">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="register">
+          <div class="form-group">
+            <label for="{{ register_form.full_name.id_for_label }}">Full Name</label>
+            <div class="input-wrapper">
+              <i class="fas fa-user"></i>
+              {{ register_form.full_name }}
+            </div>
+            {% if register_form.full_name.errors %}
+              <div class="error">{{ register_form.full_name.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ register_form.department.id_for_label }}">Department</label>
+            <div class="input-wrapper">
+              <i class="fas fa-building"></i>
+              {{ register_form.department }}
+            </div>
+            {% if register_form.department.errors %}
+              <div class="error">{{ register_form.department.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ register_form.employee_id.id_for_label }}">Employee ID</label>
+            <div class="input-wrapper">
+              <i class="fas fa-id-card"></i>
+              {{ register_form.employee_id }}
+            </div>
+            {% if register_form.employee_id.errors %}
+              <div class="error">{{ register_form.employee_id.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ register_form.username.id_for_label }}">Username</label>
+            <div class="input-wrapper">
+              <i class="fas fa-user"></i>
+              {{ register_form.username }}
+            </div>
+            {% if register_form.username.errors %}
+              <div class="error">{{ register_form.username.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ register_form.email.id_for_label }}">Email</label>
+            <div class="input-wrapper">
+              <i class="fas fa-envelope"></i>
+              {{ register_form.email }}
+            </div>
+            {% if register_form.email.errors %}
+              <div class="error">{{ register_form.email.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ register_form.password1.id_for_label }}">Password</label>
+            <div class="input-wrapper">
+              <i class="fas fa-lock"></i>
+              {{ register_form.password1 }}
+            </div>
+            {% if register_form.password1.errors %}
+              <div class="error">{{ register_form.password1.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-group">
+            <label for="{{ register_form.password2.id_for_label }}">Confirm Password</label>
+            <div class="input-wrapper">
+              <i class="fas fa-lock"></i>
+              {{ register_form.password2 }}
+            </div>
+            {% if register_form.password2.errors %}
+              <div class="error">{{ register_form.password2.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <button type="submit" class="btn">
+            <i class="fas fa-user-plus"></i> Register
+          </button>
+        </form>
+
+        <div class="form-footer">
+          <p>Forgot your password? <a href="#reset">Reset here</a></p>
+        </div>
+      </div>
+
+      <div class="back-link">
+        <a href="{% url 'index' %}">
+          <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+      </div>
+    </div>
+  </main>
+
+
+
+  <script>
+    // Add smooth scrolling for navigation links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Add form validation and enhancement
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.querySelector('form');
+      const inputs = document.querySelectorAll('input');
+      
+      inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+          this.parentElement.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+          this.parentElement.classList.remove('focused');
+        });
+      });
+
+      // Form validation only - let Django handle the submission
+      form.addEventListener('submit', function(e) {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        if (!username || !password) {
+          alert('Please fill in all fields');
+          e.preventDefault();
+          return false;
+        }
+        // Let the form submit normally to Django
+      });
+    });
+
+    // Tab switching functionality
+    function showTab(tabName) {
+      const loginForm = document.getElementById('login-form');
+      const registerForm = document.getElementById('register-form');
+      const tabButtons = document.querySelectorAll('.tab-button');
+
+      tabButtons.forEach(button => button.classList.remove('active'));
+
+      if (tabName === 'login') {
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        tabButtons[0].classList.add('active');
+      } else {
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        tabButtons[1].classList.add('active');
+      }
+    }
+
+    // Add input animation
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach(input => {
+      input.addEventListener('input', function() {
+        if (this.value.length > 0) {
+          this.style.borderColor = '#e53e3e';
+        } else {
+          this.style.borderColor = '#e2e8f0';
+        }
+      });
+    });
+  </script>
+
+</body>
+</html>

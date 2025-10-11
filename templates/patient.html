@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Dashboard - Blood Donor System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  {% load static %}
+  <link href="{% static 'patient.css' %}?v=2.0" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="navbar-content">
+        <div class="navbar-brand">
+          <div class="brand-icon">
+            <i class="fas fa-hospital-user"></i>
+          </div>
+          <div class="brand-text">
+            <h1>LifeSaver</h1>
+            <span>Patient Portal</span>
+          </div>
+        </div>
+        <div class="navbar-menu">
+          <a href="{% url 'index' %}" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+          </a>
+          <a href="{% url 'patient_logout' %}" class="nav-item logout">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="container">
+      <div class="hero-content">
+        <div class="hero-text">
+          <h1 class="hero-title">Welcome, <span class="highlight">{{ patient_profile.full_name }}</span>!</h1>
+          <p class="hero-subtitle">Your health is our priority. Request blood and track your requests with ease.</p>
+        </div>
+        <div class="hero-badge">
+          <div class="patient-status-display">
+            <div class="status-icon">
+              <i class="fas fa-user-check"></i>
+            </div>
+            <div class="status-info">
+              <span class="status-label">Account Status</span>
+              <span class="status-value">Active</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Dashboard -->
+  <section class="stats-section">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-box stat-primary">
+          <div class="stat-icon">
+            <i class="fas fa-file-medical"></i>
+          </div>
+          <div class="stat-details">
+            <h3 class="stat-number">{{ blood_requests.count }}</h3>
+            <p class="stat-label">Total Requests</p>
+          </div>
+          <div class="stat-decoration"></div>
+        </div>
+        <div class="stat-box stat-success">
+          <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-details">
+            <h3 class="stat-number">{{ approved_count|default:0 }}</h3>
+            <p class="stat-label">Approved</p>
+          </div>
+          <div class="stat-decoration"></div>
+        </div>
+        <div class="stat-box stat-warning">
+          <div class="stat-icon">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stat-details">
+            <h3 class="stat-number">{{ pending_count|default:0 }}</h3>
+            <p class="stat-label">Pending</p>
+          </div>
+          <div class="stat-decoration"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      
+      <!-- Profile Card -->
+      <section class="profile-card-section">
+        <div class="section-header">
+          <div class="section-title">
+            <i class="fas fa-id-card"></i>
+            <h2>Your Profile</h2>
+          </div>
+          <button class="btn-edit" onclick="alert('Edit profile functionality coming soon!')">
+            <i class="fas fa-pen"></i>
+            Edit Profile
+          </button>
+        </div>
+        
+        <div class="profile-card-grid">
+          <!-- Personal Info Card -->
+          <div class="info-card">
+            <div class="info-card-header">
+              <i class="fas fa-user-circle"></i>
+              <h3>Personal Information</h3>
+            </div>
+            <div class="info-card-body">
+              <div class="info-row">
+                <span class="info-label">Full Name</span>
+                <span class="info-value">{{ patient_profile.full_name }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Age</span>
+                <span class="info-value">{{ patient_profile.age|default:"Not specified" }} years</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Gender</span>
+                <span class="info-value">{{ patient_profile.get_gender_display|default:"Not specified" }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contact Info Card -->
+          <div class="info-card">
+            <div class="info-card-header">
+              <i class="fas fa-address-book"></i>
+              <h3>Contact Details</h3>
+            </div>
+            <div class="info-card-body">
+              <div class="info-row">
+                <span class="info-label"><i class="fas fa-phone"></i> Phone</span>
+                <span class="info-value">{{ patient_profile.contact_number|default:"Not provided" }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label"><i class="fas fa-map-marker-alt"></i> Address</span>
+                <span class="info-value">{{ patient_profile.address|default:"Not provided" }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Medical Info Card -->
+          <div class="info-card">
+            <div class="info-card-header">
+              <i class="fas fa-heartbeat"></i>
+              <h3>Medical Information</h3>
+            </div>
+            <div class="info-card-body">
+              <div class="info-row">
+                <span class="info-label">Medical Conditions</span>
+                <span class="info-value">{{ patient_profile.medical_conditions|default:"None reported" }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Emergency Contact</span>
+                <span class="info-value">{{ patient_profile.emergency_contact|default:"Not provided" }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Account Info Card -->
+          <div class="info-card">
+            <div class="info-card-header">
+              <i class="fas fa-shield-alt"></i>
+              <h3>Account Status</h3>
+            </div>
+            <div class="info-card-body">
+              <div class="info-row">
+                <span class="info-label">Member Since</span>
+                <span class="info-value">{{ patient_profile.created_at|date:"M j, Y" }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Last Updated</span>
+                <span class="info-value">{{ patient_profile.updated_at|date:"M j, Y" }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Profile Status</span>
+                <span class="badge-success"><i class="fas fa-check-circle"></i> Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Action Tabs -->
+      <section class="action-section">
+        <div class="tab-navigation">
+          <button class="tab-btn active" onclick="switchTab('blood-request', this)">
+            <i class="fas fa-plus-circle"></i>
+            <span>Request Blood</span>
+          </button>
+          <button class="tab-btn" onclick="switchTab('request-history', this)">
+            <i class="fas fa-history"></i>
+            <span>Your Requests</span>
+          </button>
+        </div>
+
+        <!-- Blood Request Tab -->
+        <div id="blood-request" class="tab-content active">
+          <div class="content-card">
+            <div class="content-header">
+              <div class="content-icon">
+                <i class="fas fa-hospital"></i>
+              </div>
+              <div class="content-title">
+                <h3>Submit Blood Request</h3>
+                <p>Fill in the details below to request blood for your medical needs</p>
+              </div>
+            </div>
+            <form method="post" class="request-form">
+              {% csrf_token %}
+              <div class="form-grid">
+                {% for field in blood_request_form %}
+                <div class="form-field {% if field.name == 'reason' or field.name == 'medical_conditions' %}full-width{% endif %}">
+                  <label for="{{ field.id_for_label }}">
+                    {% if field.name == 'blood_group' %}
+                      <i class="fas fa-tint"></i>
+                    {% elif field.name == 'quantity' %}
+                      <i class="fas fa-flask"></i>
+                    {% elif field.name == 'urgency' %}
+                      <i class="fas fa-exclamation-triangle"></i>
+                    {% elif field.name == 'required_date' %}
+                      <i class="fas fa-calendar-day"></i>
+                    {% elif field.name == 'reason' %}
+                      <i class="fas fa-notes-medical"></i>
+                    {% else %}
+                      <i class="fas fa-info-circle"></i>
+                    {% endif %}
+                    {{ field.label }}
+                  </label>
+                  {{ field }}
+                  {% if field.errors %}
+                    <span class="field-error">{{ field.errors.0 }}</span>
+                  {% endif %}
+                </div>
+                {% endfor %}
+              </div>
+              <button type="submit" class="btn-primary">
+                <i class="fas fa-paper-plane"></i>
+                Submit Request
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Request History Tab -->
+        <div id="request-history" class="tab-content">
+          <div class="content-card">
+            <div class="content-header">
+              <div class="content-icon">
+                <i class="fas fa-clock-rotate-left"></i>
+              </div>
+              <div class="content-title">
+                <h3>Your Blood Requests</h3>
+                <p>Track all your blood request submissions and their status</p>
+              </div>
+            </div>
+            <div class="table-wrapper">
+              <table class="modern-table">
+                <thead>
+                  <tr>
+                    <th><i class="fas fa-hashtag"></i> ID</th>
+                    <th><i class="fas fa-tint"></i> Blood Group</th>
+                    <th><i class="fas fa-flask"></i> Quantity</th>
+                    <th><i class="fas fa-calendar"></i> Date</th>
+                    <th><i class="fas fa-info-circle"></i> Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for request in blood_requests %}
+                  <tr>
+                    <td><span class="request-id">#{{ request.id }}</span></td>
+                    <td><span class="blood-badge">{{ request.blood_group }}</span></td>
+                    <td><strong>{{ request.quantity }}</strong> units</td>
+                    <td>{{ request.created_at|date:"M d, Y" }}</td>
+                    <td>
+                      <span class="status-pill status-{{ request.status }}">
+                        {{ request.get_status_display }}
+                      </span>
+                    </td>
+                  </tr>
+                  {% empty %}
+                  <tr>
+                    <td colspan="5" class="empty-state">
+                      <div class="empty-icon">
+                        <i class="fas fa-inbox"></i>
+                      </div>
+                      <h4>No Requests Yet</h4>
+                      <p>You haven't submitted any blood requests. Click "Request Blood" to get started!</p>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Important Information Section -->
+      <section class="tips-section">
+        <div class="section-header centered">
+          <div class="section-title">
+            <i class="fas fa-lightbulb"></i>
+            <h2>Important Information</h2>
+          </div>
+          <p>Essential guidelines for blood request and transfusion</p>
+        </div>
+        
+        <div class="tips-grid">
+          <div class="tip-card tip-before">
+            <div class="tip-icon">
+              <i class="fas fa-clipboard-list"></i>
+            </div>
+            <h4>Before Requesting</h4>
+            <ul>
+              <li>Verify your blood group requirement</li>
+              <li>Consult with your doctor</li>
+              <li>Prepare medical documents</li>
+              <li>Check hospital availability</li>
+            </ul>
+          </div>
+          
+          <div class="tip-card tip-during">
+            <div class="tip-icon">
+              <i class="fas fa-hospital"></i>
+            </div>
+            <h4>Request Guidelines</h4>
+            <ul>
+              <li>Provide accurate information</li>
+              <li>Specify urgency level correctly</li>
+              <li>Include valid contact details</li>
+              <li>Mention any special requirements</li>
+            </ul>
+          </div>
+          
+          <div class="tip-card tip-after">
+            <div class="tip-icon">
+              <i class="fas fa-phone-volume"></i>
+            </div>
+            <h4>After Submission</h4>
+            <ul>
+              <li>Wait for approval notification</li>
+              <li>Keep your phone accessible</li>
+              <li>Coordinate with blood bank</li>
+              <li>Follow up if urgent</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <p>&copy; 2024 LifeSaver Blood Donor System. All rights reserved.</p>
+        <a href="{% url 'index' %}" class="footer-link">
+          <i class="fas fa-arrow-left"></i> Back to Home
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function switchTab(tabId, button) {
+      // Hide all tab contents
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      // Remove active class from all buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      // Show selected tab content
+      document.getElementById(tabId).classList.add('active');
+      
+      // Add active class to clicked button
+      button.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>

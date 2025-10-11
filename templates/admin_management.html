@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Management - Blood Bank System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    {% load static %}
+    <link href="{% static 'admin.css' %}" rel="stylesheet">
+    <style>
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #e53e3e;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-weight: 500;
+        }
+
+        .admin-table {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .admin-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .admin-table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .admin-type {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .super-admin {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .secondary-admin {
+            background: #bee3f8;
+            color: #2b6cb0;
+        }
+
+        .status-active {
+            color: #38a169;
+            font-weight: 500;
+        }
+
+        .status-inactive {
+            color: #a0aec0;
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .btn-primary {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .btn-success {
+            background: #38a169;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #e53e3e;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #d69e2e;
+            color: white;
+        }
+
+        .create-admin-btn {
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            margin-bottom: 2rem;
+        }
+
+        .create-admin-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(229, 62, 62, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="logo-text">
+                        <h1>Admin Management</h1>
+                        <p>Manage System Administrators</p>
+                    </div>
+                </div>
+                <nav>
+                    <ul class="nav-links">
+                        <li><a href="{% url 'index' %}">Home</a></li>
+                        <li><a href="{% url 'admin_portal' %}">Admin Portal</a></li>
+                        <li><a href="{% url 'donor_logout' %}">Logout</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="admin-stats">
+                <div class="stat-card">
+                    <div class="stat-number">{{ total_admins }}</div>
+                    <div class="stat-label">Total Admins</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ active_admins }}</div>
+                    <div class="stat-label">Active Admins</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ super_admins }}</div>
+                    <div class="stat-label">Super Admins</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ secondary_admins }}</div>
+                    <div class="stat-label">Secondary Admins</div>
+                </div>
+            </div>
+
+            <!-- Pending Admin Approvals Section -->
+            {% with pending_admins=admins|length %}
+            {% if pending_admins > 0 %}
+            <div class="admin-table">
+                <h3 style="margin-bottom: 1rem; color: #2d3748;">Pending Admin Approvals</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Employee ID</th>
+                            <th>Username</th>
+                            <th>Department</th>
+                            <th>Registration Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for admin in admins %}
+                        {% if not admin.is_active and not admin.is_secondary_admin %}
+                        <tr>
+                            <td>{{ admin.full_name }}</td>
+                            <td>{{ admin.employee_id }}</td>
+                            <td>{{ admin.user.username }}</td>
+                            <td>{{ admin.department|default:"-" }}</td>
+                            <td>{{ admin.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{% url 'approve_admin' admin.id %}" class="btn-sm btn-success"
+                                       onclick="return confirm('Are you sure you want to approve this admin and grant Secondary Admin permissions?')">
+                                        <i class="fas fa-check-circle"></i> Approve
+                                    </a>
+                                    <a href="{% url 'delete_admin' admin.id %}" class="btn-sm btn-danger"
+                                       onclick="return confirm('Are you sure you want to reject and delete this admin application? This action cannot be undone.')">
+                                        <i class="fas fa-times-circle"></i> Reject
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <a href="{% url 'create_admin' %}" class="create-admin-btn">
+               <i class="fas fa-user-plus"></i> Create New Admin
+            </a>
+
+            <div class="admin-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Employee ID</th>
+                            <th>Username</th>
+                            <th>Department</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for admin in admins %}
+                        <tr>
+                            <td>{{ admin.full_name }}</td>
+                            <td>{{ admin.employee_id }}</td>
+                            <td>{{ admin.user.username }}</td>
+                            <td>{{ admin.department|default:"-" }}</td>
+                            <td>
+                                {% if not admin.is_active and not admin.is_secondary_admin %}
+                                    <span class="status-inactive">Pending Approval</span>
+                                {% elif admin.is_active %}
+                                    <span class="status-active">Active</span>
+                                {% else %}
+                                    <span class="status-inactive">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ admin.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{% url 'update_admin' admin.id %}" class="btn-sm btn-secondary">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    {% if not admin.is_active and not admin.is_secondary_admin %}
+                                        <form method="post" action="{% url 'approve_admin' admin.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-sm btn-success" onclick="return confirm('Are you sure you want to approve this admin and grant Secondary Admin permissions?')">
+                                                <i class="fas fa-check-circle"></i> Approve as Staff
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <form method="post" action="{% url 'toggle_admin_status' admin.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn-sm {% if admin.is_active %}btn-warning{% else %}btn-success{% endif %}" onclick="return confirm('Are you sure you want to {% if admin.is_active %}deactivate{% else %}activate{% endif %} this admin?')">
+                                                {% if admin.is_active %}
+                                                    <i class="fas fa-ban"></i> Deactivate Staff
+                                                {% else %}
+                                                    <i class="fas fa-check"></i> Activate Staff
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                    {% if not admin.is_super_admin and admin.user != user %}
+                                        <a href="{% url 'delete_admin' admin.id %}" class="btn-sm btn-danger"
+                                           onclick="return confirm('Are you sure you want to delete this admin? This action cannot be undone.')">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem; color: #718096;">
+                                No admin accounts found. <a href="{% url 'create_admin' %}">Create the first admin</a>.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div>
+                    <p>&copy; 2025 Blood Bank Management System. All rights reserved.</p>
+                </div>
+                <ul class="footer-links">
+                    <li><a href="#privacy">Privacy Policy</a></li>
+                    <li><a href="#terms">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

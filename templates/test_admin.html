@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { background: #f5f5f5; padding: 20px; border-radius: 5px; margin: 10px 0; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+    <h1>Admin Login Test Results</h1>
+
+    <div class="result">
+        <h2>User Check</h2>
+        <p><strong>User exists:</strong>
+            {% if result.user_exists %}
+                <span class="success">✓ Yes</span>
+            {% else %}
+                <span class="error">✗ No</span>
+            {% endif %}
+        </p>
+
+        {% if result.user_exists %}
+        <p><strong>User active:</strong>
+            {% if result.user_active %}
+                <span class="success">✓ Yes</span>
+            {% else %}
+                <span class="error">✗ No</span>
+            {% endif %}
+        </p>
+
+        <p><strong>User groups:</strong> {{ result.user_groups|join:", " }}</p>
+
+        <p><strong>Authentication test:</strong>
+            {% if result.auth_success %}
+                <span class="success">✓ Success</span>
+            {% else %}
+                <span class="error">✗ Failed</span>
+            {% endif %}
+        </p>
+
+        {% if result.auth_success %}
+        <p><strong>Is admin check:</strong>
+            {% if result.is_admin_check %}
+                <span class="success">✓ Yes</span>
+            {% else %}
+                <span class="error">✗ No</span>
+            {% endif %}
+        </p>
+        {% endif %}
+
+        <h3>Profile Check</h3>
+        <p><strong>Profile exists:</strong>
+            {% if result.profile_exists %}
+                <span class="success">✓ Yes</span>
+            {% else %}
+                <span class="error">✗ No</span>
+            {% endif %}
+        </p>
+
+        {% if result.profile_exists %}
+        <p><strong>Is super admin:</strong> {{ result.is_super_admin }}</p>
+        <p><strong>Is secondary admin:</strong> {{ result.is_secondary_admin }}</p>
+        {% endif %}
+        {% endif %}
+
+        <h3>System Check</h3>
+        <p><strong>Available groups:</strong> {{ result.available_groups|join:", " }}</p>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <a href="{% url 'admin_portal' %}" style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">Test Admin Login</a>
+        <a href="{% url 'index' %}" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px; margin-left: 10px;">Back to Home</a>
+    </div>
+</body>
+</html>
