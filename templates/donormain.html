@@ -7,7 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
   {% load static %}
-  <link href="{% static 'donormain.css' %}?v=2.0" rel="stylesheet">
+  <link href="{% static 'donormain.css' %}?v=3.0" rel="stylesheet">
 </head>
 <body>
 
@@ -47,13 +47,13 @@
           <p class="hero-subtitle">Every donation you make is a gift of life. Thank you for being a hero in someone's story.</p>
         </div>
         <div class="hero-badge">
-          <div class="blood-type-display">
-            <div class="blood-icon">
+          <div class="patient-status-display">
+            <div class="status-icon">
               <i class="fas fa-tint"></i>
             </div>
-            <div class="blood-info">
-              <span class="blood-label">Blood Type</span>
-              <span class="blood-value">{{ donor_profile.blood_group }}</span>
+            <div class="status-info">
+              <span class="status-label">Blood Type</span>
+              <span class="status-value">{{ donor_profile.blood_group }}</span>
             </div>
           </div>
         </div>
@@ -207,6 +207,7 @@
         </div>
       </section>
 
+
       <!-- Action Tabs -->
       <section class="action-section">
         <div class="tab-navigation">
@@ -232,7 +233,13 @@
                 <p>Help us track your contribution and save lives together</p>
               </div>
             </div>
-            <form method="post" class="donation-form">
+            {% if not can_donate %}
+            <div class="alert alert-warning">
+              <i class="fas fa-exclamation-triangle"></i>
+              <p>{{ restriction_message }}</p>
+            </div>
+            {% else %}
+            <form method="post" class="request-form">
               {% csrf_token %}
               <div class="form-grid">
                 <div class="form-field">
@@ -250,13 +257,53 @@
                   {{ donation_form.donation_date }}
                 </div>
               </div>
-              <button type="submit" class="btn-primary">
+              <button type="submit" name="donation" class="btn-primary">
                 <i class="fas fa-save"></i>
-                Log Donation
+                Request Donation Approval
               </button>
             </form>
+            {% endif %}
+
+            <!-- Booking Form (shown after approval) -->
+            {% if approved_donations %}
+            <div class="booking-section">
+              <h4>Book Your Appointment</h4>
+              <form method="post" class="request-form">
+                {% csrf_token %}
+                <input type="hidden" name="booking" value="1">
+                <div class="form-grid">
+                  <div class="form-field">
+                    <label for="{{ booking_form.timeslot.id_for_label }}">
+                      <i class="fas fa-clock"></i>
+                      {{ booking_form.timeslot.label }}
+                    </label>
+                    {{ booking_form.timeslot }}
+                  </div>
+                </div>
+                <button type="submit" class="btn-primary">
+                  <i class="fas fa-calendar-check"></i>
+                  Confirm Appointment
+                </button>
+              </form>
+              {% if available_timeslots %}
+              <div class="available-slots">
+                <h4>Available Timeslots</h4>
+                <div class="slots-grid">
+                  {% for slot in available_timeslots %}
+                  <div class="slot-card">
+                    <div class="slot-date">{{ slot.date|date:"M d, Y" }}</div>
+                    <div class="slot-time">{{ slot.start_time }} - {{ slot.end_time }}</div>
+                    <div class="slot-capacity">{{ slot.available_slots }} slots left</div>
+                  </div>
+                  {% endfor %}
+                </div>
+              </div>
+              {% endif %}
+            </div>
+            {% endif %}
           </div>
         </div>
+
 
         <!-- Donation History Tab -->
         <div id="donation-history" class="tab-content">
@@ -283,7 +330,7 @@
                 <tbody>
                   {% for donation in donations %}
                   <tr>
-                    <td><span class="donation-id">#{{ donation.id }}</span></td>
+                    <td><span class="request-id">#{{ donation.id }}</span></td>
                     <td><strong>{{ donation.quantity }}</strong> units</td>
                     <td>{{ donation.donation_date|date:"M d, Y" }}</td>
                     <td>
@@ -307,6 +354,43 @@
               </table>
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- Recent Notifications Section -->
+      <section class="notifications-section">
+        <div class="section-header">
+          <div class="section-title">
+            <i class="fas fa-bell"></i>
+            <h2>Recent Notifications</h2>
+          </div>
+        </div>
+        <div class="notifications-list">
+          {% for notification in notifications %}
+          <div class="notification-card">
+            <div class="notification-icon">
+              <i class="fas fa-info-circle"></i>
+            </div>
+            <div class="notification-content">
+              <h4>{{ notification.title|default:"Notification" }}</h4>
+              <p>{{ notification.message }}</p>
+              <span class="notification-date">{{ notification.created_at|date:"M d, Y H:i" }}</span>
+            </div>
+            <div class="notification-actions">
+              {% if not notification.is_read %}
+              <a href="{% url 'mark_notification_read' notification.id %}" class="btn-small">Mark as Read</a>
+              {% endif %}
+            </div>
+          </div>
+          {% empty %}
+          <div class="empty-state">
+            <div class="empty-icon">
+              <i class="fas fa-bell-slash"></i>
+            </div>
+            <h4>No Notifications</h4>
+            <p>You have no new notifications.</p>
+          </div>
+          {% endfor %}
         </div>
       </section>
 
@@ -343,7 +427,7 @@
               <li>Age: 18-65 years old</li>
               <li>Weight: At least 50kg</li>
               <li>Good general health</li>
-              <li>Wait 56 days between donations</li>
+              <li>Wait 90 days between donations</li>
             </ul>
           </div>
           

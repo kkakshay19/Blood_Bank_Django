@@ -40,6 +40,7 @@ class DonorProfile(models.Model):
     weight = models.PositiveIntegerField(blank=True, null=True, help_text="Weight in kg")
     height = models.PositiveIntegerField(blank=True, null=True, help_text="Height in cm")
     medical_conditions = models.TextField(blank=True, help_text="Any medical conditions")
+    next_eligible_date = models.DateField(null=True, blank=True, help_text="Next eligible donation date (90 days after last donation)")
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -174,6 +175,7 @@ class BloodRequest(models.Model):
     patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name='blood_requests')
     blood_group = models.CharField(max_length=3, choices=PatientProfile.blood_group.field.choices)
     quantity = models.PositiveIntegerField(help_text="Number of units required")
+    fulfilled_quantity = models.PositiveIntegerField(default=0, help_text="Number of units actually fulfilled")
     status = models.CharField(
         max_length=20,
         choices=[
@@ -199,25 +201,141 @@ class BloodRequest(models.Model):
         return f"Request from {self.patient.full_name} for {self.quantity} units of {self.blood_group}"
 
 
+class Timeslot(models.Model):
+    """
+    Model for scheduling donation appointments.
+    """
+    date = models.DateField(help_text="Appointment date")
+    start_time = models.TimeField(help_text="Start time of the timeslot")
+    end_time = models.TimeField(help_text="End time of the timeslot")
+    capacity = models.PositiveIntegerField(default=10, help_text="Maximum number of appointments for this timeslot")
+    booked_count = models.PositiveIntegerField(default=0, help_text="Number of appointments already booked")
+    is_active = models.BooleanField(default=True, help_text="Whether this timeslot is available for booking")
+
+    class Meta:
+        verbose_name = "Timeslot"
+        verbose_name_plural = "Timeslots"
+        ordering = ['date', 'start_time']
+        unique_together = ['date', 'start_time']
+
+    def __str__(self):
+        return f"{self.date} {self.start_time}-{self.end_time} ({self.booked_count}/{self.capacity})"
+
+    @property
+    def available_slots(self):
+        return self.capacity - self.booked_count
+
+    @property
+    def booked(self):
+        return self.booked_count
+
+    def is_available(self):
+        return self.is_active and self.available_slots > 0
+
+
 class BloodDonation(models.Model):
     """
-    Model to track blood donations from donors.
+    Model to track blood donations from donors with extended workflow.
     """
     donor = models.ForeignKey(DonorProfile, on_delete=models.CASCADE, related_name='donations')
     quantity = models.PositiveIntegerField(help_text="Number of units donated")
     donation_date = models.DateField()
+    appointment_date = models.DateField(null=True, blank=True, help_text="Scheduled appointment date")
+    timeslot = models.ForeignKey(Timeslot, on_delete=models.SET_NULL, null=True, blank=True, related_name='donations')
     status = models.CharField(
         max_length=20,
         choices=[
-            ('pending', 'Pending'),
+            ('waiting', 'Waiting for Appointment'),
+            ('confirmed', 'Appointment Confirmed'),
+            ('completed', 'Donation Completed'),
+            ('pending', 'Pending Review'),
             ('approved', 'Approved'),
             ('rejected', 'Rejected'),
         ],
-        default='pending'
+        default='waiting'
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    class Meta:
+        verbose_name = "Blood Donation"
+        verbose_name_plural = "Blood Donations"
+        ordering = ['-created_at']
+
     def __str__(self):
         return f"Donation from {self.donor.full_name} of {self.quantity} units on {self.donation_date}"
+
+    def save(self, *args, **kwargs):
+        # Update donor's next eligible date when donation is completed
+        if self.status == 'completed' and not self.donor.next_eligible_date:
+            from datetime import timedelta
+            self.donor.next_eligible_date = self.donation_date + timedelta(days=90)
+            self.donor.save(update_fields=['next_eligible_date'])
+        super().save(*args, **kwargs)
+
+
+class BloodBank(models.Model):
+    """
+    Model to store donated blood units in the blood bank.
+    """
+    donation = models.OneToOneField(BloodDonation, on_delete=models.CASCADE, related_name='blood_unit')
+    blood_group = models.CharField(max_length=3, choices=DonorProfile.blood_group.field.choices)
+    quantity = models.PositiveIntegerField(help_text="Number of units stored")
+    storage_date = models.DateField(auto_now_add=True)
+    expiry_date = models.DateField(help_text="Expiry date of the blood unit")
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('available', 'Available'),
+            ('reserved', 'Reserved'),
+            ('used', 'Used'),
+            ('expired', 'Expired'),
+            ('discarded', 'Discarded'),
+        ],
+        default='available'
+    )
+    location = models.CharField(max_length=50, blank=True, help_text="Storage location in blood bank")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Blood Bank Unit"
+        verbose_name_plural = "Blood Bank Units"
+        ordering = ['-storage_date']
+
+    def __str__(self):
+        return f"{self.blood_group} - {self.quantity} units (Stored: {self.storage_date})"
+
+
+class Notification(models.Model):
+    """
+    Model for notifications sent to donors and patients.
+    """
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=200, help_text="Notification title")
+    message = models.TextField(help_text="Notification message")
+    notification_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('appointment', 'Appointment'),
+            ('confirmation', 'Confirmation'),
+            ('reminder', 'Reminder'),
+            ('status_update', 'Status Update'),
+            ('general', 'General'),
+        ],
+        default='general'
+    )
+    is_read = models.BooleanField(default=False, help_text="Whether the notification has been read")
+    related_donation = models.ForeignKey(BloodDonation, on_delete=models.SET_NULL, null=True, blank=True, related_name='notifications')
+    related_request = models.ForeignKey(BloodRequest, on_delete=models.SET_NULL, null=True, blank=True, related_name='notifications')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Notification"
+        verbose_name_plural = "Notifications"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Notification to {self.recipient.username}: {self.title}"
 

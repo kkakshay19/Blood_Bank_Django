@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Appointment Management - Blood Donor System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  {% load static %}
+  <link href="{% static 'adminmain.css' %}" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">
+            <i class="fas fa-calendar-check"></i>
+          </div>
+          <div class="logo-text">
+            <h1>Appointment Management</h1>
+            <p>Blood Donor System</p>
+          </div>
+        </div>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+            <li><a href="{% url 'admin_logout' %}">Logout</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="page-header">
+        <h2>Manage Donor Appointments</h2>
+        <p>Review and manage donation appointments</p>
+      </div>
+
+      <div class="data-table">
+        <h3>Pending Appointments</h3>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Donor</th>
+                <th>Blood Type</th>
+                <th>Appointment Date</th>
+                <th>Timeslot</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for donation in pending_appointments %}
+              <tr>
+                <td>{{ donation.donor.full_name }}</td>
+                <td>{{ donation.donor.blood_group }}</td>
+                <td>{{ donation.appointment_date|date:"M d, Y" }}</td>
+                <td>{{ donation.timeslot.start_time }} - {{ donation.timeslot.end_time }}</td>
+                <td>
+                  <span class="status-pill status-{{ donation.status }}">
+                    {{ donation.get_status_display }}
+                  </span>
+                </td>
+                <td>
+                  {% if donation.status == 'waiting' %}
+                    <a href="{% url 'confirm_appointment' donation.id %}" class="btn" title="Confirm Appointment">
+                      <i class="fas fa-check"></i> Confirm
+                    </a>
+                  {% elif donation.status == 'confirmed' %}
+                    <a href="{% url 'complete_donation' donation.id %}" class="btn" title="Mark as Completed">
+                      <i class="fas fa-check-double"></i> Complete
+                    </a>
+                  {% endif %}
+                  <a href="{% url 'reject_donation' donation.id %}" class="btn secondary" title="Reject/Cancel">
+                    <i class="fas fa-times"></i> Reject
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="6" class="empty-state">
+                  <div class="empty-icon">
+                    <i class="fas fa-calendar-times"></i>
+                  </div>
+                  <h4>No Pending Appointments</h4>
+                  <p>All appointments have been processed.</p>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="data-table">
+        <h3>Recent Completed Donations</h3>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Donor</th>
+                <th>Blood Type</th>
+                <th>Donation Date</th>
+                <th>Quantity</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for donation in completed_donations %}
+              <tr>
+                <td>{{ donation.donor.full_name }}</td>
+                <td>{{ donation.donor.blood_group }}</td>
+                <td>{{ donation.donation_date|date:"M d, Y" }}</td>
+                <td>{{ donation.quantity }} ml</td>
+                <td>
+                  <span class="status-pill status-completed">
+                    {{ donation.get_status_display }}
+                  </span>
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="5" class="empty-state">
+                  <div class="empty-icon">
+                    <i class="fas fa-flask"></i>
+                  </div>
+                  <h4>No Completed Donations</h4>
+                  <p>Completed donations will appear here.</p>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="back-link">
+        <a href="{% url 'admin_dashboard' %}">
+          <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <style>
+    .status-pill {
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+    .status-waiting { background: #fff3cd; color: #856404; }
+    .status-confirmed { background: #d1ecf1; color: #0c5460; }
+    .status-completed { background: #d4edda; color: #155724; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #666;
+    }
+    .empty-icon {
+      font-size: 48px;
+      color: #ddd;
+      margin-bottom: 15px;
+    }
+    .empty-state h4 {
+      margin: 10px 0;
+      color: #333;
+    }
+  </style>
+</body>
+</html>

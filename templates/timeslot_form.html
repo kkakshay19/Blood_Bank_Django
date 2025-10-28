@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% if timeslot %}Update{% else %}Create{% endif %} Timeslot - Blood Donor System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  {% load static %}
+  <link href="{% static 'timeslot.css' %}" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">
+            <i class="fas fa-calendar-plus"></i>
+          </div>
+          <div class="logo-text">
+            <h1>{% if timeslot %}Update{% else %}Create{% endif %} Timeslot</h1>
+            <p>Blood Donor System</p>
+          </div>
+        </div>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="{% url 'timeslot_list' %}">Timeslots</a></li>
+            <li><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+            <li><a href="{% url 'admin_logout' %}">Logout</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="form-container">
+        <div class="form-header">
+          <h2>{% if timeslot %}Update Timeslot{% else %}Create New Timeslot{% endif %}</h2>
+          <p>{% if timeslot %}Modify the timeslot details below{% else %}Set up a new donation timeslot{% endif %}</p>
+        </div>
+
+        <form method="post" class="timeslot-form">
+          {% csrf_token %}
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="{{ form.date.id_for_label }}">
+                <i class="fas fa-calendar"></i>
+                {{ form.date.label }}
+              </label>
+              {{ form.date }}
+              {% if form.date.errors %}
+                <div class="error-message">
+                  {{ form.date.errors.0 }}
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="form-field">
+              <label for="{{ form.start_time.id_for_label }}">
+                <i class="fas fa-clock"></i>
+                {{ form.start_time.label }}
+              </label>
+              {{ form.start_time }}
+              {% if form.start_time.errors %}
+                <div class="error-message">
+                  {{ form.start_time.errors.0 }}
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="form-field">
+              <label for="{{ form.end_time.id_for_label }}">
+                <i class="fas fa-clock"></i>
+                {{ form.end_time.label }}
+              </label>
+              {{ form.end_time }}
+              {% if form.end_time.errors %}
+                <div class="error-message">
+                  {{ form.end_time.errors.0 }}
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="form-field">
+              <label for="{{ form.capacity.id_for_label }}">
+                <i class="fas fa-users"></i>
+                {{ form.capacity.label }}
+              </label>
+              {{ form.capacity }}
+              {% if form.capacity.errors %}
+                <div class="error-message">
+                  {{ form.capacity.errors.0 }}
+                </div>
+              {% endif %}
+            </div>
+
+            <div class="form-field full-width">
+              <label for="{{ form.location.id_for_label }}">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ form.location.label }}
+              </label>
+              {{ form.location }}
+              {% if form.location.errors %}
+                <div class="error-message">
+                  {{ form.location.errors.0 }}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">
+              <i class="fas fa-save"></i>
+              {% if timeslot %}Update{% else %}Create{% endif %} Timeslot
+            </button>
+            <a href="{% url 'timeslot_list' %}" class="btn-secondary">
+              <i class="fas fa-times"></i>
+              Cancel
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <div class="back-link">
+        <a href="{% url 'timeslot_list' %}">
+          <i class="fas fa-arrow-left"></i> Back to Timeslots
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Add date picker enhancements if needed
+    document.addEventListener('DOMContentLoaded', function() {
+      const dateInput = document.querySelector('input[type="date"]');
+      if (dateInput) {
+        // Set minimum date to today
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.setAttribute('min', today);
+      }
+    });
+  </script>
+</body>
+</html>

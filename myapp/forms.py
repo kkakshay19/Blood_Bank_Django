@@ -1,7 +1,8 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User, Group
-from .models import DonorProfile, AdminProfile, PatientProfile, BloodRequest, BloodDonation
+from django.db.models import F
+from .models import DonorProfile, AdminProfile, PatientProfile, BloodRequest, BloodDonation, Timeslot, Notification
 
 
 class DonorRegistrationForm(UserCreationForm):
@@ -507,6 +508,59 @@ class BloodRequestForm(forms.ModelForm):
             }),
         }
 
+class TimeslotForm(forms.ModelForm):
+    """
+    Form for creating donation timeslots.
+    """
+    class Meta:
+        model = Timeslot
+        fields = ['date', 'start_time', 'end_time', 'capacity']
+        widgets = {
+            'date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'start_time': forms.TimeInput(attrs={
+                'class': 'form-control',
+                'type': 'time'
+            }),
+            'end_time': forms.TimeInput(attrs={
+                'class': 'form-control',
+                'type': 'time'
+            }),
+            'capacity': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Maximum appointments'
+            }),
+        }
+
+
+class AppointmentBookingForm(forms.Form):
+    """
+    Form for donors to book appointments.
+    """
+    timeslot = forms.ModelChoiceField(
+        queryset=Timeslot.objects.filter(is_active=True),
+        widget=forms.Select(attrs={
+            'class': 'form-control'
+        }),
+        empty_label="Select a timeslot"
+    )
+
+    def __init__(self, *args, **kwargs):
+        self.donor = kwargs.pop('donor', None)
+        super().__init__(*args, **kwargs)
+        # Filter available timeslots
+        available_timeslots = Timeslot.objects.filter(
+            is_active=True,
+            booked_count__lt=F('capacity')
+        ).exclude(
+            donations__donor=self.donor,
+            donations__status__in=['waiting', 'confirmed']
+        )
+        self.fields['timeslot'].queryset = available_timeslots
+
+
 class BloodDonationForm(forms.ModelForm):
     """
     Form for donors to log blood donations.
@@ -522,5 +576,28 @@ class BloodDonationForm(forms.ModelForm):
             'donation_date': forms.DateInput(attrs={
                 'class': 'form-control',
                 'type': 'date'
+            }),
+        }
+
+
+class NotificationForm(forms.ModelForm):
+    """
+    Form for sending notifications to donors.
+    """
+    class Meta:
+        model = Notification
+        fields = ['title', 'message', 'notification_type']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Notification title'
+            }),
+            'message': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Notification message',
+                'rows': 4
+            }),
+            'notification_type': forms.Select(attrs={
+                'class': 'form-control'
             }),
         }

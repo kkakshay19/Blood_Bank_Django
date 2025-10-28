@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blood Bank Inventory - Blood Donor System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  {% load static %}
+  <link href="{% static 'blood_bank.css' %}" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">
+            <i class="fas fa-tint"></i>
+          </div>
+          <div class="logo-text">
+            <h1>Blood Bank Inventory</h1>
+            <p>Blood Donor System</p>
+          </div>
+        </div>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="{% url 'admin_dashboard' %}">Dashboard</a></li>
+            <li><a href="{% url 'admin_logout' %}">Logout</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="page-header">
+        <h2>Blood Bank Management</h2>
+        <p>Monitor blood inventory and expiry dates</p>
+      </div>
+
+      <!-- Search and Export Section -->
+      <div class="search-export-section">
+        <input type="text" class="search-input" placeholder="Search by blood type (A, B, AB, O)..." id="bloodSearch">
+        <button class="export-btn" onclick="exportInventory()">
+          <i class="fas fa-download"></i>
+          Export Inventory
+        </button>
+      </div>
+
+      <!-- Blood Type Summary -->
+      <div class="blood-summary">
+        {% for blood_type, count in blood_inventory.items %}
+        <div class="blood-type-card">
+          <div class="blood-type-header">
+            <div class="blood-icon">
+              <i class="fas fa-tint"></i>
+            </div>
+            <div class="blood-type-info">
+              <h3>{{ blood_type }}</h3>
+              <span class="unit-count">{{ count }} units</span>
+            </div>
+          </div>
+          <div class="blood-type-status">
+            {% if count > 10 %}
+              <span class="status good">Good Supply</span>
+            {% elif count > 5 %}
+              <span class="status moderate">Moderate</span>
+            {% else %}
+              <span class="status low">Low Supply</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Blood Units Table -->
+      <div class="data-table">
+        <h3>Blood Units Inventory</h3>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Unit ID</th>
+                <th>Donor</th>
+                <th>Blood Type</th>
+                <th>Quantity (ml)</th>
+                <th>Collection Date</th>
+                <th>Expiry Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for unit in blood_units %}
+              <tr class="{% if unit.expiry_date < today %}expired{% elif unit.expiry_date <= warning_date %}expiring-soon{% endif %}">
+                <td>#{{ unit.id }}</td>
+                <td>{{ unit.donor.full_name }}</td>
+                <td>
+                  <span class="blood-badge blood-{{ unit.blood_type|lower }}">{{ unit.blood_type }}</span>
+                </td>
+                <td>{{ unit.quantity }}</td>
+                <td>{{ unit.created_at|date:"M d, Y" }}</td>
+                <td>
+                  {{ unit.expiry_date|date:"M d, Y" }}
+                  {% if unit.expiry_date < today %}
+                    <span class="expired-label">EXPIRED</span>
+                  {% elif unit.expiry_date <= warning_date %}
+                    <span class="warning-label">Expires Soon</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if unit.expiry_date < today %}
+                    <span class="status expired">Expired</span>
+                  {% elif unit.expiry_date <= warning_date %}
+                    <span class="status expiring">Expiring Soon</span>
+                  {% else %}
+                    <span class="status available">Available</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr>
+                <td colspan="7" class="empty-state">
+                  <div class="empty-icon">
+                    <i class="fas fa-flask"></i>
+                  </div>
+                  <h4>No Blood Units</h4>
+                  <p>Blood units from completed donations will appear here.</p>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Inventory Alerts -->
+      <div class="alerts-section">
+        <h3>Inventory Alerts</h3>
+
+        {% if expiring_units %}
+        <div class="alert-card warning">
+          <div class="alert-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="alert-content">
+            <h4>Units Expiring Soon</h4>
+            <p>{{ expiring_units|length }} blood unit(s) will expire within 7 days.</p>
+            <ul>
+              {% for unit in expiring_units %}
+              <li>{{ unit.blood_type }} - Expires {{ unit.expiry_date|date:"M d, Y" }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if expired_units %}
+        <div class="alert-card danger">
+          <div class="alert-icon">
+            <i class="fas fa-times-circle"></i>
+          </div>
+          <div class="alert-content">
+            <h4>Expired Units</h4>
+            <p>{{ expired_units|length }} blood unit(s) have expired and should be discarded.</p>
+            <ul>
+              {% for unit in expired_units %}
+              <li>{{ unit.blood_type }} - Expired {{ unit.expiry_date|date:"M d, Y" }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if low_stock_types %}
+        <div class="alert-card info">
+          <div class="alert-icon">
+            <i class="fas fa-info-circle"></i>
+          </div>
+          <div class="alert-content">
+            <h4>Low Stock Alert</h4>
+            <p>The following blood types are running low:</p>
+            <ul>
+              {% for blood_type, count in low_stock_types.items %}
+              <li>{{ blood_type }}: {{ count }} units remaining</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if not expiring_units and not expired_units and not low_stock_types %}
+        <div class="alert-card success">
+          <div class="alert-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="alert-content">
+            <h4>All Good!</h4>
+            <p>Blood inventory is well-maintained. No immediate alerts.</p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="back-link">
+        <a href="{% url 'admin_dashboard' %}">
+          <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Search functionality for blood units
+    document.getElementById('bloodSearch').addEventListener('input', function() {
+      const searchTerm = this.value.toLowerCase();
+      const rows = document.querySelectorAll('tbody tr');
+
+      rows.forEach(row => {
+        const bloodTypeCell = row.querySelector('td:nth-child(3)');
+        if (bloodTypeCell) {
+          const bloodType = bloodTypeCell.textContent.toLowerCase();
+          if (bloodType.includes(searchTerm) || searchTerm === '') {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        }
+      });
+    });
+
+    // Export inventory functionality
+    function exportInventory() {
+      const table = document.querySelector('table');
+      if (!table) {
+        alert('No data to export');
+        return;
+      }
+
+      let csv = [];
+      const rows = table.querySelectorAll('tr');
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = [];
+        const cols = rows[i].querySelectorAll('td, th');
+
+        for (let j = 0; j < cols.length; j++) {
+          let text = cols[j].textContent || cols[j].innerText;
+          // Remove extra whitespace and labels
+          text = text.replace(/\s+/g, ' ').trim();
+          text = text.replace(/EXPIRED|Expires Soon/g, '').trim();
+          row.push('"' + text + '"');
+        }
+
+        csv.push(row.join(','));
+      }
+
+      // Download CSV
+      const csvContent = csv.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+
+      if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'blood_inventory_' + new Date().toISOString().split('T')[0] + '.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    }
+  </script>
+</body>
+</html>

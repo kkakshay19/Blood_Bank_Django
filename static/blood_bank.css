@@ -1,0 +1,626 @@
+/* Blood Bank Inventory Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: #ffffff;
+  min-height: 100vh;
+  color: #333;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Header Styles */
+header {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-icon {
+  font-size: 32px;
+  color: #e74c3c;
+  margin-right: 15px;
+}
+
+.logo-text h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+.logo-text p {
+  font-size: 14px;
+  color: #666;
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  gap: 30px;
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.nav-links a:hover {
+  color: #e74c3c;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 2px;
+  bottom: -5px;
+  left: 0;
+  background: #e74c3c;
+  transition: width 0.3s ease;
+}
+
+.nav-links a:hover::after {
+  width: 100%;
+}
+
+/* Main Content */
+main {
+  padding: 40px 0;
+}
+
+.page-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.page-header h2 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.page-header p {
+  font-size: 18px;
+  color: #666;
+}
+
+/* Blood Summary Cards */
+.blood-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.blood-type-card {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  border-left: 5px solid #e74c3c;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.blood-type-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, rgba(231, 76, 60, 0.1), rgba(231, 76, 60, 0.05));
+  border-radius: 50%;
+  transform: translate(30px, -30px);
+}
+
+.blood-type-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+}
+
+.blood-type-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.blood-icon {
+  font-size: 28px;
+  color: #e74c3c;
+  margin-right: 15px;
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.blood-type-info h3 {
+  margin: 0;
+  color: #333;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.unit-count {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.blood-type-status {
+  position: relative;
+  z-index: 1;
+}
+
+.status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status.good {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+}
+
+.status.moderate {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+}
+
+.status.low {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+}
+
+/* Data Table */
+.data-table {
+  background: white;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.data-table h3 {
+  padding: 25px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background: #f8f9fa;
+}
+
+th {
+  padding: 15px 20px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #e9ecef;
+}
+
+td {
+  padding: 15px 20px;
+  border-bottom: 1px solid #e9ecef;
+  font-size: 14px;
+  color: #555;
+}
+
+tbody tr {
+  transition: background-color 0.3s ease;
+}
+
+tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.blood-badge {
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+}
+
+.blood-a { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+.blood-b { background: linear-gradient(135deg, #3498db, #2980b9); }
+.blood-ab { background: linear-gradient(135deg, #9b59b6, #8e44ad); }
+.blood-o { background: linear-gradient(135deg, #f39c12, #e67e22); }
+
+.expired {
+  background-color: #ffeaea;
+}
+
+.expiring-soon {
+  background-color: #fff8e1;
+}
+
+.expired-label,
+.warning-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.expired-label {
+  color: #e74c3c;
+}
+
+.warning-label {
+  color: #f39c12;
+}
+
+.status {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status.expired {
+  background: #fee;
+  color: #e74c3c;
+}
+
+.status.expiring {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status.available {
+  background: #d4edda;
+  color: #155724;
+}
+
+/* Alerts Section */
+.alerts-section {
+  margin-bottom: 40px;
+}
+
+.alerts-section h3 {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.alert-card {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: flex-start;
+  transition: transform 0.3s ease;
+}
+
+.alert-card:hover {
+  transform: translateY(-2px);
+}
+
+.alert-card.warning {
+  border-left: 5px solid #f39c12;
+}
+
+.alert-card.danger {
+  border-left: 5px solid #e74c3c;
+}
+
+.alert-card.info {
+  border-left: 5px solid #3498db;
+}
+
+.alert-card.success {
+  border-left: 5px solid #27ae60;
+}
+
+.alert-icon {
+  font-size: 28px;
+  margin-right: 20px;
+  margin-top: 2px;
+}
+
+.alert-card.warning .alert-icon {
+  color: #f39c12;
+}
+
+.alert-card.danger .alert-icon {
+  color: #e74c3c;
+}
+
+.alert-card.info .alert-icon {
+  color: #3498db;
+}
+
+.alert-card.success .alert-icon {
+  color: #27ae60;
+}
+
+.alert-content h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.alert-content p {
+  margin: 0 0 15px 0;
+  color: #666;
+  line-height: 1.6;
+}
+
+.alert-content ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.alert-content li {
+  margin-bottom: 8px;
+  color: #555;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.empty-icon {
+  font-size: 64px;
+  color: #ddd;
+  margin-bottom: 20px;
+}
+
+.empty-state h4 {
+  margin: 15px 0;
+  color: #333;
+  font-size: 20px;
+}
+
+.empty-state p {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Back Link */
+.back-link {
+  text-align: center;
+  margin-top: 40px;
+}
+
+.back-link a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.3s ease;
+  padding: 12px 24px;
+  border-radius: 25px;
+  background: rgba(102, 126, 234, 0.1);
+}
+
+.back-link a:hover {
+  color: #764ba2;
+  background: rgba(102, 126, 234, 0.2);
+}
+
+/* Search and Export Section */
+.search-export-section {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  margin-bottom: 30px;
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 250px;
+  padding: 12px 20px;
+  border: 2px solid #e1e5e9;
+  border-radius: 25px;
+  font-size: 16px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.export-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.export-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .nav-links {
+    gap: 20px;
+  }
+
+  .blood-summary {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+  }
+
+  .blood-type-card {
+    padding: 20px;
+  }
+
+  .data-table h3 {
+    padding: 20px;
+    font-size: 18px;
+  }
+
+  th, td {
+    padding: 12px 15px;
+    font-size: 13px;
+  }
+
+  .alert-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .alert-icon {
+    margin-right: 0;
+    margin-bottom: 15px;
+  }
+
+  .search-export-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .search-input {
+    min-width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0 15px;
+  }
+
+  .page-header h2 {
+    font-size: 24px;
+  }
+
+  .blood-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .table-scroll {
+    font-size: 12px;
+  }
+
+  th, td {
+    padding: 8px 10px;
+  }
+}
+
+/* Animation */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.blood-type-card,
+.data-table,
+.alert-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.blood-type-card:nth-child(1) { animation-delay: 0.1s; }
+.blood-type-card:nth-child(2) { animation-delay: 0.2s; }
+.blood-type-card:nth-child(3) { animation-delay: 0.3s; }
+.blood-type-card:nth-child(4) { animation-delay: 0.4s; }
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #e84393, #e17055);
+}

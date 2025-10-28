@@ -35,4 +35,20 @@ urlpatterns = [
     path('request/<int:request_id>/reject/', views.reject_blood_request, name='reject_blood_request'),
     path('donation/<int:donation_id>/approve/', views.approve_donation, name='approve_donation'),
     path('donation/<int:donation_id>/reject/', views.reject_donation, name='reject_donation'),
+
+    # Timeslot Management
+    path('portal/timeslots/', views.timeslot_list, name='timeslot_list'),
+    path('portal/timeslots/create/', views.create_timeslot, name='create_timeslot'),
+    path('portal/timeslots/<int:timeslot_id>/update/', views.update_timeslot, name='update_timeslot'),
+    path('portal/timeslots/<int:timeslot_id>/delete/', views.delete_timeslot, name='delete_timeslot'),
+
+    # Appointment Management
+    path('appointment/<int:donation_id>/confirm/', views.confirm_appointment, name='confirm_appointment'),
+    path('donation/<int:donation_id>/complete/', views.complete_donation, name='complete_donation'),
+
+    # Blood Bank
+    path('portal/blood-bank/', views.blood_bank_list, name='blood_bank_list'),
+
+    # Notifications
+    path('notification/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
 ]
