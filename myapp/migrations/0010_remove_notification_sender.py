@@ -10,10 +10,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='notification',
-            name='sender',
-        ),
         migrations.AddField(
             model_name='bloodrequest',
             name='fulfilled_quantity',

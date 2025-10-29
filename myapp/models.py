@@ -54,6 +54,23 @@ class DonorProfile(models.Model):
     def __str__(self):
         return f"{self.full_name} ({self.user.username}) - {self.blood_group}"
 
+    def is_eligible_to_donate(self):
+        """
+        Check if donor is eligible to donate based on 90-day rule.
+        Returns (is_eligible, days_remaining)
+        """
+        from datetime import date
+        today = date.today()
+        
+        if not self.next_eligible_date:
+            return True, 0
+        
+        if self.next_eligible_date <= today:
+            return True, 0
+        else:
+            days_remaining = (self.next_eligible_date - today).days
+            return False, days_remaining
+
 
 class PatientProfile(models.Model):
     """
@@ -235,7 +252,7 @@ class Timeslot(models.Model):
 
 class BloodDonation(models.Model):
     """
-    Model to track blood donations from donors with extended workflow.
+    Model to track blood donations from donors with two-stage approval workflow.
     """
     donor = models.ForeignKey(DonorProfile, on_delete=models.CASCADE, related_name='donations')
     quantity = models.PositiveIntegerField(help_text="Number of units donated")
@@ -245,14 +262,32 @@ class BloodDonation(models.Model):
     status = models.CharField(
         max_length=20,
         choices=[
-            ('waiting', 'Waiting for Appointment'),
-            ('confirmed', 'Appointment Confirmed'),
-            ('completed', 'Donation Completed'),
-            ('pending', 'Pending Review'),
-            ('approved', 'Approved'),
+            ('pending_initial', 'Pending Initial Approval'),
+            ('initial_approved', 'Initial Approval - Can Book Slot'),
+            ('slot_confirmed', 'Slot Confirmed - Pending Final Approval'),
+            ('final_approved', 'Final Approved - Donation Completed'),
             ('rejected', 'Rejected'),
         ],
-        default='waiting'
+        default='pending_initial'
+    )
+    # Track approval timestamps
+    initial_approved_at = models.DateTimeField(null=True, blank=True)
+    final_approved_at = models.DateTimeField(null=True, blank=True)
+    rejected_at = models.DateTimeField(null=True, blank=True)
+    # Track who approved
+    initial_approved_by = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='initial_approved_donations'
+    )
+    final_approved_by = models.ForeignKey(
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='final_approved_donations'
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -266,8 +301,8 @@ class BloodDonation(models.Model):
         return f"Donation from {self.donor.full_name} of {self.quantity} units on {self.donation_date}"
 
     def save(self, *args, **kwargs):
-        # Update donor's next eligible date when donation is completed
-        if self.status == 'completed' and not self.donor.next_eligible_date:
+        # Update donor's next eligible date when donation is finally approved
+        if self.status == 'final_approved':
             from datetime import timedelta
             self.donor.next_eligible_date = self.donation_date + timedelta(days=90)
             self.donor.save(update_fields=['next_eligible_date'])
@@ -306,6 +341,59 @@ class BloodBank(models.Model):
     def __str__(self):
         return f"{self.blood_group} - {self.quantity} units (Stored: {self.storage_date})"
 
+    @classmethod
+    def get_available_units(cls, blood_group, quantity_needed=1):
+        """
+        Get available blood units for a specific blood group.
+        Returns units that are available and not expired.
+        """
+        from datetime import date
+        return cls.objects.filter(
+            blood_group=blood_group,
+            status='available',
+            expiry_date__gt=date.today()
+        ).order_by('expiry_date')  # FIFO - First In, First Out
+
+    @classmethod
+    def check_availability(cls, blood_group, quantity_needed):
+        """
+        Check if sufficient blood units are available for a blood group.
+        Returns (is_available, available_quantity)
+        """
+        available_units = cls.get_available_units(blood_group)
+        total_available = sum(unit.quantity for unit in available_units)
+        return total_available >= quantity_needed, total_available
+
+    @classmethod
+    def deduct_units(cls, blood_group, quantity_needed):
+        """
+        Deduct blood units from inventory using FIFO method.
+        Returns the number of units actually deducted.
+        """
+        from datetime import date
+        available_units = cls.get_available_units(blood_group)
+        units_deducted = 0
+        remaining_need = quantity_needed
+
+        for unit in available_units:
+            if remaining_need <= 0:
+                break
+
+            if unit.quantity <= remaining_need:
+                # Use entire unit
+                units_deducted += unit.quantity
+                remaining_need -= unit.quantity
+                unit.status = 'used'
+                unit.save()
+            else:
+                # Split unit - use what's needed
+                units_deducted += remaining_need
+                unit.quantity -= remaining_need
+                unit.save()
+                remaining_need = 0
+
+        return units_deducted
+
 
 class Notification(models.Model):
     """
@@ -321,6 +409,7 @@ class Notification(models.Model):
             ('confirmation', 'Confirmation'),
             ('reminder', 'Reminder'),
             ('status_update', 'Status Update'),
+            ('donation_completed', 'Donation Completed'),
             ('general', 'General'),
         ],
         default='general'

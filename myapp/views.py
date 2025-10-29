@@ -9,6 +9,7 @@ from .forms import DonorRegistrationForm, AdminLoginForm, AdminRegistrationForm,
 from django.contrib.auth.forms import AuthenticationForm
 from .models import DonorProfile, AdminProfile, PatientProfile, BloodRequest, BloodDonation, Timeslot, BloodBank, Notification
 from django.db.models import F, Case, When, Value, FloatField
+from django.db import models
 from datetime import datetime, timedelta
 
 def index(request):
@@ -75,36 +76,42 @@ def donor_view(request):
 @login_required
 def donor_dashboard(request):
     """Donor dashboard view for authenticated users"""
-    if not hasattr(request.user, 'donor_profile'):
-        # If the user is authenticated but has no donor profile, they are not a donor.
-        # Log them out and redirect to the donor login page.
-        logout(request)
-        messages.error(request, 'You do not have a donor profile. Please register or log in as a donor.')
-        return redirect('donor')
-
-    donor_profile = request.user.donor_profile
+    try:
+        donor_profile = request.user.donor_profile
+    except DonorProfile.DoesNotExist:
+        messages.error(request, 'You do not have a donor profile. Please create one.')
+        return redirect('donor_registration')
     donation_form = BloodDonationForm()
     booking_form = AppointmentBookingForm(donor=donor_profile)
 
     if request.method == 'POST':
         if 'donation' in request.POST:
+            # Check eligibility first
+            is_eligible, days_remaining = donor_profile.is_eligible_to_donate()
+            if not is_eligible:
+                messages.error(request, f'You are not eligible to donate yet. You can donate again in {days_remaining} days.')
+                return redirect('donor_dashboard')
+            
             donation_form = BloodDonationForm(request.POST)
             if donation_form.is_valid():
                 donation = donation_form.save(commit=False)
                 donation.donor = donor_profile
-                donation.status = 'pending'
+                donation.status = 'pending_initial'
                 donation.save()
-                messages.success(request, 'Donation request submitted! Awaiting admin approval.')
+                messages.success(request, 'Donation request submitted! Awaiting initial admin approval.')
                 return redirect('donor_dashboard')
         elif 'booking' in request.POST:
             booking_form = AppointmentBookingForm(request.POST, donor=donor_profile)
             if booking_form.is_valid():
                 timeslot = booking_form.cleaned_data['timeslot']
-                # Update the approved donation with timeslot
-                approved_donation = BloodDonation.objects.filter(donor=donor_profile, status='approved').first()
+                # Update the initially approved donation with timeslot
+                approved_donation = BloodDonation.objects.filter(
+                    donor=donor_profile, 
+                    status='initial_approved'
+                ).first()
                 if approved_donation:
                     approved_donation.timeslot = timeslot
-                    approved_donation.status = 'waiting'
+                    approved_donation.status = 'slot_confirmed'
                     approved_donation.appointment_date = timeslot.date
                     approved_donation.save()
                     # Increment booked count
@@ -113,26 +120,26 @@ def donor_dashboard(request):
                     # Create notification
                     Notification.objects.create(
                         recipient=approved_donation.donor.user,
-                        sender=None,
                         title='Appointment Booked',
-                        message=f'Your appointment for {timeslot.date} at {timeslot.start_time} is waiting for admin confirmation.',
-                        notification_type='appointment'
+                        message=f'Your appointment for {timeslot.date} at {timeslot.start_time} is confirmed. Awaiting final admin approval.',
+                        notification_type='appointment',
+                        related_donation=approved_donation
                     )
                     messages.success(request, f'Appointment booked for {timeslot.date} at {timeslot.start_time}. Awaiting final admin approval.')
                     return redirect('donor_dashboard')
                 else:
-                    messages.error(request, 'No approved donation found for booking.')
+                    messages.error(request, 'No initially approved donation found for booking.')
 
     donations = BloodDonation.objects.filter(donor=donor_profile).order_by('-donation_date')
     total_quantity = sum(donation.quantity for donation in donations if donation.quantity)
 
-    # Get approved donations for booking
-    approved_donations = BloodDonation.objects.filter(donor=donor_profile, status='approved')
+    # Get initially approved donations for booking
+    approved_donations = BloodDonation.objects.filter(donor=donor_profile, status='initial_approved')
 
     # Get upcoming appointments
     upcoming_appointments = BloodDonation.objects.filter(
         donor=donor_profile,
-        status__in=['confirmed', 'completed'],
+        status__in=['slot_confirmed', 'final_approved'],
         appointment_date__gte=datetime.now().date()
     ).order_by('appointment_date')
 
@@ -148,15 +155,14 @@ def donor_dashboard(request):
         date__gte=datetime.now().date()
     ).exclude(
         donations__donor=donor_profile,
-        donations__status__in=['confirmed']
+        donations__status__in=['slot_confirmed', 'final_approved']
     ).order_by('date', 'start_time')[:5]  # Show next 5 available
 
-    # Check donation restriction
-    can_donate = True
+    # Check donation eligibility
+    can_donate, days_remaining = donor_profile.is_eligible_to_donate()
     restriction_message = None
-    if donor_profile.next_eligible_date and donor_profile.next_eligible_date > datetime.now().date():
-        can_donate = False
-        restriction_message = f'You can donate again after {donor_profile.next_eligible_date}.'
+    if not can_donate:
+        restriction_message = f'You can donate again in {days_remaining} days.'
 
     context = {
         'donor_profile': donor_profile,
@@ -187,11 +193,8 @@ def patient_dashboard(request):
     try:
         patient_profile = request.user.patient_profile
     except PatientProfile.DoesNotExist:
-        # If the user is authenticated but has no patient profile, they are not a patient.
-        # Log them out and redirect to the patient login page.
-        logout(request)
-        messages.error(request, 'You do not have a patient profile. Please register or log in as a patient.')
-        return redirect('patient')
+        messages.error(request, 'You do not have a patient profile. Please create one.')
+        return redirect('patient_registration')
 
     blood_request_form = BloodRequestForm()
 
@@ -499,7 +502,7 @@ def admin_dashboard(request):
     donors = DonorProfile.objects.all()
     patients = PatientProfile.objects.all()
     blood_requests = BloodRequest.objects.filter(status='pending').order_by('-created_at')
-    donations = BloodDonation.objects.filter(status__in=['pending', 'waiting']).order_by('-created_at')
+    donations = BloodDonation.objects.filter(status__in=['pending_initial', 'slot_confirmed']).order_by('-created_at')
     timeslots = Timeslot.objects.all().order_by('-date', 'start_time')
     blood_units = BloodBank.objects.all().order_by('-created_at')
 
@@ -507,13 +510,14 @@ def admin_dashboard(request):
     today = datetime.now().date()
     warning_date = today + timedelta(days=7)
 
-    # Blood inventory summary
+    # Blood inventory summary - only count available units
     blood_inventory = {}
     for unit in blood_units:
-        blood_group = unit.blood_group
-        if blood_group not in blood_inventory:
-            blood_inventory[blood_group] = 0
-        blood_inventory[blood_group] += 1
+        if unit.status == 'available':
+            blood_group = unit.blood_group
+            if blood_group not in blood_inventory:
+                blood_inventory[blood_group] = 0
+            blood_inventory[blood_group] += 1
 
     # Units expiring soon (within 7 days)
     expiring_units = blood_units.filter(expiry_date__lte=warning_date, expiry_date__gte=today)
@@ -566,7 +570,7 @@ def secondary_admin_dashboard(request):
     donors = DonorProfile.objects.all()
     patients = PatientProfile.objects.all()
     blood_requests = BloodRequest.objects.filter(status='pending').order_by('-created_at')
-    donations = BloodDonation.objects.filter(status='pending').order_by('-created_at')
+    donations = BloodDonation.objects.filter(status__in=['pending_initial', 'slot_confirmed']).order_by('-created_at')
 
     context = {
         'admin_profile': admin_profile,
@@ -597,74 +601,47 @@ def approve_blood_request(request, request_id):
     blood_request = get_object_or_404(BloodRequest, id=request_id)
 
     # Check if already approved
-    if blood_request.status == 'approved':
-        messages.warning(request, 'This blood request is already approved.')
+    if blood_request.status == 'fulfilled':
+        messages.warning(request, 'This blood request is already fulfilled.')
         return redirect(request.META.get('HTTP_REFERER', 'admin_dashboard'))
 
     # Check if sufficient blood units are available in inventory
-    available_units = BloodBank.objects.filter(
-        blood_group=blood_request.blood_group,
-        status='available',
-        expiry_date__gt=datetime.now().date()
-    ).aggregate(total_units=models.Sum('quantity'))['total_units'] or 0
+    is_available, available_units = BloodBank.check_availability(
+        blood_request.blood_group, 
+        blood_request.quantity
+    )
 
-    if available_units < blood_request.quantity:
+    if not is_available:
         messages.error(request, f'Insufficient blood units available. Requested: {blood_request.quantity}, Available: {available_units}')
         return redirect(request.META.get('HTTP_REFERER', 'admin_dashboard'))
 
-    # Deduct blood units from inventory (FIFO - First In, First Out)
-    units_needed = blood_request.quantity
-    blood_units = BloodBank.objects.filter(
-        blood_group=blood_request.blood_group,
-        status='available',
-        expiry_date__gt=datetime.now().date()
-    ).order_by('expiry_date')  # Use oldest blood first
+    try:
+        # Deduct blood units from inventory using the new method
+        fulfilled_quantity = BloodBank.deduct_units(
+            blood_request.blood_group, 
+            blood_request.quantity
+        )
 
-    fulfilled_quantity = 0
-    for unit in blood_units:
-        if units_needed <= 0:
-            break
+        # Update blood request
+        blood_request.status = 'fulfilled'
+        blood_request.fulfilled_quantity = fulfilled_quantity
+        blood_request.save()
 
-        if unit.quantity <= units_needed:
-            # Use entire unit
-            unit.status = 'used'
-            unit.save()
-            fulfilled_quantity += unit.quantity
-            units_needed -= unit.quantity
-        else:
-            # Split unit - create new unit with remaining quantity
-            remaining_quantity = unit.quantity - units_needed
-            unit.quantity = units_needed
-            unit.status = 'used'
-            unit.save()
+        # Create notification for patient
+        Notification.objects.create(
+            recipient=blood_request.patient.user,
+            title='Blood Request Fulfilled',
+            message=f'Your blood request for {fulfilled_quantity} units of {blood_request.blood_group} blood has been fulfilled.',
+            notification_type='status_update',
+            related_request=blood_request
+        )
 
-            # Create new unit with remaining quantity
-            BloodBank.objects.create(
-                donation=unit.donation,
-                blood_group=unit.blood_group,
-                quantity=remaining_quantity,
-                expiry_date=unit.expiry_date,
-                status='available',
-                location=unit.location
-            )
-            fulfilled_quantity += units_needed
-            units_needed = 0
+        messages.success(request, f'Blood request fulfilled successfully! {fulfilled_quantity} units of {blood_request.blood_group} blood deducted from inventory.')
+        
+    except Exception as e:
+        messages.error(request, f'Error processing blood request: {str(e)}')
+        return redirect(request.META.get('HTTP_REFERER', 'admin_dashboard'))
 
-    # Update blood request
-    blood_request.status = 'fulfilled'
-    blood_request.fulfilled_quantity = fulfilled_quantity
-    blood_request.save()
-
-    # Create notification for patient
-    Notification.objects.create(
-        recipient=blood_request.patient.user,
-        title='Blood Request Fulfilled',
-        message=f'Your blood request for {fulfilled_quantity} units of {blood_request.blood_group} blood has been fulfilled.',
-        notification_type='status_update',
-        related_request=blood_request
-    )
-
-    messages.success(request, f'Blood request fulfilled. {fulfilled_quantity} units deducted from inventory.')
     return redirect(request.META.get('HTTP_REFERER', 'admin_dashboard'))
 
 
@@ -678,10 +655,10 @@ def reject_blood_request(request, request_id):
     # Create notification for patient
     Notification.objects.create(
         recipient=blood_request.patient.user,
-        sender=None,
         title='Blood Request Rejected',
         message=f'Your blood request has been rejected.',
-        notification_type='status_update'
+        notification_type='status_update',
+        related_request=blood_request
     )
     messages.success(request, 'Blood request rejected. Patient notified.')
     return redirect(request.META.get('HTTP_REFERER', 'admin_dashboard'))
@@ -689,22 +666,55 @@ def reject_blood_request(request, request_id):
 
 @login_required
 @user_passes_test(is_admin)
-def approve_donation(request, donation_id):
-    """Approve a blood donation."""
-    donation = get_object_or_404(BloodDonation, id=donation_id, status='pending')
-    donation.status = 'approved'
+def approve_donation_initial(request, donation_id):
+    """Initial approval of a blood donation - donor can now book slot."""
+    donation = get_object_or_404(BloodDonation, id=donation_id, status='pending_initial')
+    donation.status = 'initial_approved'
+    donation.initial_approved_at = datetime.now()
+    donation.initial_approved_by = request.user
     donation.save()
 
     # Create notification for donor
     Notification.objects.create(
         recipient=donation.donor.user,
-        title='Donation Approved',
-        message='Great! You can now fix the donation appointment.',
+        title='Initial Approval - Book Your Slot',
+        message='You can donate blood in the available slot. Please book your appointment.',
         notification_type='appointment',
         related_donation=donation
     )
 
-    messages.success(request, 'Donation approved. Donor notified to book appointment.')
+    messages.success(request, 'Donation initially approved. Donor can now book appointment slot.')
+    return redirect(request.META.get('HTTP_REFERER', 'admin_dashboard'))
+
+
+@login_required
+@user_passes_test(is_admin)
+def approve_donation_final(request, donation_id):
+    """Final approval of a blood donation - donation is completed."""
+    donation = get_object_or_404(BloodDonation, id=donation_id, status='slot_confirmed')
+    donation.status = 'final_approved'
+    donation.final_approved_at = datetime.now()
+    donation.final_approved_by = request.user
+    donation.save()
+
+    # Add to blood bank inventory
+    BloodBank.objects.create(
+        donation=donation,
+        blood_group=donation.donor.blood_group,
+        quantity=donation.quantity or 450,  # Default 450ml if not specified
+        expiry_date=datetime.now().date() + timedelta(days=42)  # 42 days expiry
+    )
+
+    # Create notification for donor
+    Notification.objects.create(
+        recipient=donation.donor.user,
+        title='Congratulations!',
+        message='Congratulations on your valuable donation!',
+        notification_type='donation_completed',
+        related_donation=donation
+    )
+
+    messages.success(request, 'Donation finally approved and added to blood bank inventory.')
     return redirect(request.META.get('HTTP_REFERER', 'admin_dashboard'))
 
 
@@ -714,14 +724,16 @@ def reject_donation(request, donation_id):
     """Reject a blood donation."""
     donation = get_object_or_404(BloodDonation, id=donation_id)
     donation.status = 'rejected'
+    donation.rejected_at = datetime.now()
     donation.save()
+    
     # Create notification for donor
     Notification.objects.create(
         recipient=donation.donor.user,
-        sender=None,
         title='Donation Rejected',
         message=f'Your donation request has been rejected.',
-        notification_type='status_update'
+        notification_type='status_update',
+        related_donation=donation
     )
     messages.success(request, 'Donation rejected. Donor notified.')
     return redirect(request.META.get('HTTP_REFERER', 'admin_dashboard'))
@@ -800,63 +812,6 @@ def delete_timeslot(request, timeslot_id):
     return render(request, 'delete_timeslot.html', context)
 
 
-@login_required
-@user_passes_test(is_admin)
-def confirm_appointment(request, donation_id):
-    """Confirm a waiting appointment"""
-    donation = get_object_or_404(BloodDonation, id=donation_id, status='waiting')
-    donation.status = 'confirmed'
-    donation.save()
-
-    # Set next eligible date
-    donation.donor.next_eligible_date = datetime.now().date() + timedelta(days=90)
-    donation.donor.save()
-
-    # Add to blood bank only if not already exists
-    if not hasattr(donation, 'blood_unit'):
-        BloodBank.objects.create(
-            donation=donation,
-            blood_group=donation.donor.blood_group,
-            quantity=donation.quantity or 450,
-            expiry_date=datetime.now().date() + timedelta(days=42)
-        )
-
-    # Create notification for donor
-    Notification.objects.create(
-        recipient=donation.donor.user,
-        title='Donation Confirmed',
-        message='Congratulations on your valuable donation.',
-        notification_type='donation_completed',
-        related_donation=donation
-    )
-
-    messages.success(request, 'Appointment confirmed and donation completed.')
-    return redirect(request.META.get('HTTP_REFERER', 'admin_dashboard'))
-
-
-@login_required
-@user_passes_test(is_admin)
-def complete_donation(request, donation_id):
-    """Mark donation as completed"""
-    donation = get_object_or_404(BloodDonation, id=donation_id, status='confirmed')
-    donation.status = 'completed'
-    donation.save()
-
-    # Decrement booked count
-    donation.timeslot.booked_count = F('booked_count') - 1
-    donation.timeslot.save()
-
-    # Create notification for donor
-    Notification.objects.create(
-        recipient=donation.donor.user,
-        sender=None,
-        title='Donation Completed',
-        message=f'Your donation on {donation.donation_date} has been completed. Thank you for saving lives!',
-        notification_type='donation_completed'
-    )
-
-    messages.success(request, 'Donation marked as completed.')
-    return redirect(request.META.get('HTTP_REFERER', 'admin_dashboard'))
 
 
 @login_required
@@ -877,6 +832,86 @@ def mark_notification_read(request, notification_id):
     notification.is_read = True
     notification.save()
     return redirect(request.META.get('HTTP_REFERER', 'donor_dashboard'))
+
+
+# Patient Management Views
+@login_required
+@user_passes_test(is_admin)
+@csrf_exempt
+def toggle_patient_status(request, patient_id):
+    """Toggle patient active status"""
+    from django.http import JsonResponse
+    
+    try:
+        patient_profile = get_object_or_404(PatientProfile, id=patient_id)
+        
+        # Toggle the patient's user account status
+        patient_profile.user.is_active = not patient_profile.user.is_active
+        patient_profile.user.save()
+        
+        status = "activated" if patient_profile.user.is_active else "deactivated"
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Patient {patient_profile.full_name} has been {status}.',
+            'new_status': patient_profile.user.is_active
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': f'Error updating patient status: {str(e)}'
+        })
+
+
+@login_required
+@user_passes_test(is_admin)
+def patient_details(request, patient_id):
+    """View detailed patient information"""
+    patient_profile = get_object_or_404(PatientProfile, id=patient_id)
+    
+    # Get patient's blood requests
+    blood_requests = BloodRequest.objects.filter(patient=patient_profile).order_by('-created_at')
+    
+    # Get patient's medical history if available
+    medical_history = patient_profile.medical_history or "No medical history recorded."
+    
+    context = {
+        'patient': patient_profile,
+        'blood_requests': blood_requests,
+        'medical_history': medical_history,
+        'total_requests': blood_requests.count(),
+        'fulfilled_requests': blood_requests.filter(status='fulfilled').count(),
+        'pending_requests': blood_requests.filter(status='pending').count(),
+    }
+    
+    return render(request, 'patient_details.html', context)
+
+
+@login_required
+@user_passes_test(is_admin)
+def edit_patient(request, patient_id):
+    """Edit patient information"""
+    from .forms import PatientProfileUpdateForm
+    
+    patient_profile = get_object_or_404(PatientProfile, id=patient_id)
+    
+    if request.method == 'POST':
+        form = PatientProfileUpdateForm(request.POST, instance=patient_profile)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Patient {patient_profile.full_name} updated successfully!')
+            return redirect('admin_dashboard')
+    else:
+        form = PatientProfileUpdateForm(instance=patient_profile)
+    
+    context = {
+        'form': form,
+        'patient': patient_profile,
+        'title': f'Edit Patient: {patient_profile.full_name}'
+    }
+    
+    return render(request, 'patient_edit.html', context)
 
 
 def test_admin_login(request):

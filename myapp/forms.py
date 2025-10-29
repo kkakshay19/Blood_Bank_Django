@@ -128,11 +128,6 @@ class DonorRegistrationForm(UserCreationForm):
         return user
 
 
-        self.fields['username'].widget.attrs['placeholder'] = 'Enter your username'
-        self.fields['password'].widget.attrs['class'] = 'form-control'
-        self.fields['password'].widget.attrs['placeholder'] = 'Enter your password'
-
-
 class AdminLoginForm(AuthenticationForm):
     """
     Form for admin login (Super Admin and Secondary Admin).
@@ -491,6 +486,49 @@ class PatientLoginForm(AuthenticationForm):
         self.fields['password'].widget.attrs['class'] = 'form-control'
         self.fields['password'].widget.attrs['placeholder'] = 'Enter your password'
 
+
+class PatientProfileUpdateForm(forms.ModelForm):
+    """
+    Form for updating patient profiles by admin.
+    """
+    class Meta:
+        model = PatientProfile
+        fields = ['full_name', 'age', 'blood_group', 'contact_number', 'address', 'gender', 'emergency_contact', 'medical_history']
+        widgets = {
+            'full_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter full name'
+            }),
+            'age': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter age'
+            }),
+            'blood_group': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'contact_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter contact number'
+            }),
+            'address': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter address',
+                'rows': 3
+            }),
+            'gender': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'emergency_contact': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter emergency contact'
+            }),
+            'medical_history': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter medical history',
+                'rows': 3
+            }),
+        }
+
 class BloodRequestForm(forms.ModelForm):
     """
     Form for patients to request blood.
@@ -556,7 +594,7 @@ class AppointmentBookingForm(forms.Form):
             booked_count__lt=F('capacity')
         ).exclude(
             donations__donor=self.donor,
-            donations__status__in=['waiting', 'confirmed']
+            donations__status__in=['slot_confirmed', 'final_approved']
         )
         self.fields['timeslot'].queryset = available_timeslots
 

@@ -9,6 +9,9 @@
   {% load static %}
   <link href="{% static 'adminmain.css' %}" rel="stylesheet">
   <link href="{% static 'blood_bank.css' %}" rel="stylesheet">
+  <link href="{% static 'status_badges.css' %}" rel="stylesheet">
+  <link href="{% static 'admin_buttons.css' %}" rel="stylesheet">
+  <link href="{% static 'patient_management.css' %}" rel="stylesheet">
 </head>
 <body>
   <header>
@@ -25,19 +28,19 @@
         </div>
         <nav>
           <ul class="nav-links">
-            <li><a href="{% url 'index' %}">Home</a></li>
+            <li><a href="{% url 'index' %}"><i class="fas fa-home"></i> Home</a></li>
             {% if user.is_superuser or is_super_admin_group %}
-              <li><a href="{% url 'admin_management' %}">Admin Management</a></li>
+              <li><a href="{% url 'admin_management' %}"><i class="fas fa-users-cog"></i> Admin Management</a></li>
             {% endif %}
-            <li><a href="{% url 'admin_logout' %}">Logout</a></li>
+            <li><a href="{% url 'admin_logout' %}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
           </ul>
         </nav>
         <div class="user-info">
           <span class="user-role">
-            {% if user.is_superuser or is_super_admin_group %}
-              <i class="fas fa-crown"></i> Super Admin
-            {% elif is_secondary_admin_group %}
-              <i class="fas fa-user-shield"></i> Secondary Admin
+            {% if is_super_admin or user.is_superuser %}
+              <i class="fas fa-crown"></i> <strong>Super Admin</strong>
+            {% elif is_secondary_admin %}
+              <i class="fas fa-user-shield"></i> <strong>Secondary Admin</strong>
             {% endif %}
           </span>
           <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
@@ -100,6 +103,7 @@
             <ul class="nav-menu">
               <li><button data-section="dashboard" class="active">Dashboard</button></li>
               <li><button data-section="donors">Donor Management</button></li>
+              <li><button data-section="patients">Patient Management</button></li>
               <li><button data-section="receivers">Patient Requests</button></li>
               <li><button data-section="inventory">Blood Inventory</button></li>
               <li><button data-section="timeslots">Timeslots</button></li>
@@ -155,31 +159,109 @@
               </div>
             </section>
 
-            <!-- Patient Requests -->
-            <section id="section-receivers" class="section">
+            <!-- Patient Management -->
+            <section id="section-patients" class="section">
               <div class="data-table">
-                <h3>Patient Requests</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                  <h3><i class="fas fa-user-injured"></i> Patient Management</h3>
+                  <div style="display: flex; gap: 0.5rem;">
+                    <input type="text" class="search-input" placeholder="Search patients..." id="patientSearch" style="width: 200px;">
+                    <button class="export-btn" onclick="exportPatients()">
+                      <i class="fas fa-download"></i> Export CSV
+                    </button>
+                  </div>
+                </div>
                 <div class="table-scroll">
                   <table>
                     <thead>
                       <tr>
-                        <th>Patient</th>
-                        <th>Blood Group</th>
-                        <th>Quantity</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th><i class="fas fa-id-card"></i> ID</th>
+                        <th><i class="fas fa-user"></i> Patient Name</th>
+                        <th><i class="fas fa-tint"></i> Blood Group</th>
+                        <th><i class="fas fa-birthday-cake"></i> Age</th>
+                        <th><i class="fas fa-venus-mars"></i> Gender</th>
+                        <th><i class="fas fa-phone"></i> Contact</th>
+                        <th><i class="fas fa-map-marker-alt"></i> Address</th>
+                        <th><i class="fas fa-exclamation-triangle"></i> Emergency Contact</th>
+                        <th><i class="fas fa-calendar-plus"></i> Registered</th>
+                        <th><i class="fas fa-info-circle"></i> Status</th>
+                        <th><i class="fas fa-cogs"></i> Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {% for request in blood_requests %}
-                      <tr>
-                        <td>{{ request.patient.full_name }}</td>
-                        <td>{{ request.blood_group }}</td>
-                        <td>{{ request.quantity }}</td>
-                        <td>{{ request.get_status_display }}</td>
+                      {% for patient in patients %}
+                      <tr class="patient-row">
+                        <td>#{{ patient.id }}</td>
                         <td>
-                          <a href="{% url 'approve_blood_request' request.id %}" class="btn">Approve</a>
-                          <a href="{% url 'reject_blood_request' request.id %}" class="btn secondary">Reject</a>
+                          <strong>{{ patient.full_name }}</strong>
+                          <br><small class="text-muted">@{{ patient.user.username }}</small>
+                        </td>
+                        <td>
+                          <span class="blood-badge blood-{{ patient.blood_group|lower }}">
+                            {{ patient.blood_group }}
+                          </span>
+                        </td>
+                        <td>{{ patient.age }} years</td>
+                        <td>
+                          {% if patient.gender %}
+                            <i class="fas fa-{{ patient.gender|yesno:'venus,mars,transgender' }}"></i>
+                            {{ patient.get_gender_display|default:"-" }}
+                          {% else %}
+                            -
+                          {% endif %}
+                        </td>
+                        <td>
+                          <a href="tel:{{ patient.contact_number }}" class="contact-link">
+                            <i class="fas fa-phone"></i> {{ patient.contact_number }}
+                          </a>
+                        </td>
+                        <td>
+                          {% if patient.address %}
+                            <span title="{{ patient.address }}">
+                              {{ patient.address|truncatechars:30 }}
+                            </span>
+                          {% else %}
+                            -
+                          {% endif %}
+                        </td>
+                        <td>
+                          {% if patient.emergency_contact %}
+                            <a href="tel:{{ patient.emergency_contact }}" class="contact-link">
+                              <i class="fas fa-phone"></i> {{ patient.emergency_contact }}
+                            </a>
+                          {% else %}
+                            -
+                          {% endif %}
+                        </td>
+                        <td>{{ patient.created_at|date:"M d, Y" }}</td>
+                        <td>
+                          <span class="status-indicator status-{{ patient.user.is_active|yesno:'active,inactive' }}">
+                            {{ patient.user.is_active|yesno:"Active,Inactive" }}
+                          </span>
+                        </td>
+                        <td class="patient-actions">
+                          <button class="btn small view-patient-btn" data-patient-id="{{ patient.id }}" title="View Details">
+                            <i class="fas fa-eye"></i>
+                          </button>
+                          <button class="btn small secondary edit-patient-btn" data-patient-id="{{ patient.id }}" title="Edit Patient">
+                            <i class="fas fa-edit"></i>
+                          </button>
+                          <button class="btn small {% if patient.user.is_active %}danger{% else %}success{% endif %} toggle-patient-btn" 
+                                  data-patient-id="{{ patient.id }}" 
+                                  data-current-status="{% if patient.user.is_active %}true{% else %}false{% endif %}"
+                                  title="{% if patient.user.is_active %}Deactivate{% else %}Activate{% endif %} Patient">
+                            <i class="fas fa-{% if patient.user.is_active %}ban{% else %}check{% endif %}"></i>
+                          </button>
+                        </td>
+                      </tr>
+                      {% empty %}
+                      <tr>
+                        <td colspan="11" class="empty-state">
+                          <div class="empty-icon">
+                            <i class="fas fa-user-injured"></i>
+                          </div>
+                          <h4>No Patients Found</h4>
+                          <p>No patients have registered in the system yet.</p>
                         </td>
                       </tr>
                       {% endfor %}
@@ -189,10 +271,77 @@
               </div>
             </section>
 
-            <!-- Blood Inventory -->
+            <!-- Patient Requests -->
+            <section id="section-receivers" class="section">
+              <div class="data-table">
+                <h3><i class="fas fa-heartbeat"></i> Patient Blood Requests</h3>
+                {% if blood_requests %}
+                <div class="table-scroll">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th><i class="fas fa-user"></i> Patient</th>
+                        <th><i class="fas fa-tint"></i> Blood Group</th>
+                        <th><i class="fas fa-flask"></i> Quantity</th>
+                        <th><i class="fas fa-info-circle"></i> Status</th>
+                        <th><i class="fas fa-cogs"></i> Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for request in blood_requests %}
+                      <tr class="blood-request-row">
+                        <td>
+                          <strong>{{ request.patient.full_name }}</strong>
+                          <br><small class="text-muted">{{ request.patient.contact_number }}</small>
+                        </td>
+                        <td>
+                          <span class="blood-badge blood-{{ request.blood_group|lower }}">
+                            {{ request.blood_group }}
+                          </span>
+                        </td>
+                        <td>
+                          <strong>{{ request.quantity }}</strong> units
+                        </td>
+                        <td>
+                          <span class="status-indicator status-{{ request.status }}">
+                            {{ request.get_status_display }}
+                          </span>
+                        </td>
+                        <td class="request-actions">
+                          <a href="{% url 'approve_blood_request' request.id %}" 
+                             class="btn success" 
+                             onclick="return confirm('Approve this blood request and deduct from inventory?')"
+                             title="Approve and deduct from blood bank">
+                            <i class="fas fa-check"></i> Approve
+                          </a>
+                          <a href="{% url 'reject_blood_request' request.id %}" 
+                             class="btn secondary" 
+                             onclick="return confirm('Reject this blood request?')"
+                             title="Reject blood request">
+                            <i class="fas fa-times"></i> Reject
+                          </a>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                  <div class="empty-icon">
+                    <i class="fas fa-heart"></i>
+                  </div>
+                  <h4>No Pending Requests</h4>
+                  <p>All blood requests have been processed.</p>
+                </div>
+                {% endif %}
+              </div>
+            </section>
+
+            <!-- Blood Donations -->
             <section id="section-inventory" class="section">
               <div class="data-table">
-                <h3>Blood Donations</h3>
+                <h3>Blood Donations - Two-Stage Approval</h3>
                 <div class="table-scroll">
                   <table>
                     <thead>
@@ -201,6 +350,7 @@
                         <th>Quantity</th>
                         <th>Date</th>
                         <th>Status</th>
+                        <th>Timeslot</th>
                         <th>Actions</th>
                       </tr>
                     </thead>
@@ -210,14 +360,46 @@
                         <td>{{ donation.donor.full_name }}</td>
                         <td>{{ donation.quantity }}</td>
                         <td>{{ donation.donation_date|date:"Y-m-d" }}</td>
-                        <td>{{ donation.get_status_display }}</td>
                         <td>
-                          {% if donation.status == 'pending' %}
-                            <a href="{% url 'approve_donation' donation.id %}" class="btn">Approve</a>
-                            <a href="{% url 'reject_donation' donation.id %}" class="btn secondary">Reject</a>
-                          {% elif donation.status == 'waiting' %}
-                            <a href="{% url 'confirm_appointment' donation.id %}" class="btn">Confirm Appointment</a>
+                          <span class="status-badge status-{{ donation.status }}">
+                            {{ donation.get_status_display }}
+                          </span>
+                        </td>
+                        <td>
+                          {% if donation.timeslot %}
+                            {{ donation.timeslot.date }} {{ donation.timeslot.start_time }}
+                          {% else %}
+                            -
                           {% endif %}
+                        </td>
+                        <td>
+                          {% if donation.status == 'pending_initial' %}
+                            <a href="{% url 'approve_donation_initial' donation.id %}" class="btn" onclick="return confirm('Approve initial donation request?')">
+                              <i class="fas fa-check"></i> Initial Approve
+                            </a>
+                            <a href="{% url 'reject_donation' donation.id %}" class="btn secondary" onclick="return confirm('Reject donation request?')">
+                              <i class="fas fa-times"></i> Reject
+                            </a>
+                          {% elif donation.status == 'slot_confirmed' %}
+                            <a href="{% url 'approve_donation_final' donation.id %}" class="btn success" onclick="return confirm('Give final approval and complete donation?')">
+                              <i class="fas fa-check-double"></i> Final Approve
+                            </a>
+                            <a href="{% url 'reject_donation' donation.id %}" class="btn secondary" onclick="return confirm('Reject donation request?')">
+                              <i class="fas fa-times"></i> Reject
+                            </a>
+                          {% else %}
+                            <span class="text-muted">No actions available</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                      {% empty %}
+                      <tr>
+                        <td colspan="6" class="empty-state">
+                          <div class="empty-icon">
+                            <i class="fas fa-heart"></i>
+                          </div>
+                          <h4>No Pending Donations</h4>
+                          <p>All donation requests have been processed.</p>
                         </td>
                       </tr>
                       {% endfor %}
@@ -411,7 +593,7 @@
                     <p>The following blood types are running low:</p>
                     <ul>
                       {% for blood_type, count in low_stock_types.items %}
-                      <li>{{ blood_group }}: {{ count }} units remaining</li>
+                      <li>{{ blood_type }}: {{ count }} units remaining</li>
                       {% endfor %}
                     </ul>
                   </div>
@@ -473,6 +655,145 @@
           }
         });
       });
+    }
+
+    // ---------- Patient Search Functionality ----------
+    const patientSearch = document.getElementById('patientSearch');
+    if (patientSearch) {
+      patientSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#section-patients tbody tr');
+
+        rows.forEach(row => {
+          if (row.cells.length > 1) { // Skip empty state row
+            const patientName = row.cells[1].textContent.toLowerCase();
+            const bloodGroup = row.cells[2].textContent.toLowerCase();
+            const contact = row.cells[5].textContent.toLowerCase();
+            const address = row.cells[6].textContent.toLowerCase();
+            
+            if (patientName.includes(searchTerm) || 
+                bloodGroup.includes(searchTerm) || 
+                contact.includes(searchTerm) || 
+                address.includes(searchTerm)) {
+              row.style.display = '';
+            } else {
+              row.style.display = 'none';
+            }
+          }
+        });
+      });
+    }
+
+    // ---------- Patient Management Functions ----------
+    function viewPatientDetails(patientId) {
+      // Redirect to patient details page
+      window.location.href = `/admin/patient/${patientId}/details/`;
+    }
+
+    function editPatient(patientId) {
+      // Redirect to patient edit page
+      window.location.href = `/admin/patient/${patientId}/edit/`;
+    }
+
+    function togglePatientStatus(patientId, currentStatus) {
+      const action = currentStatus ? 'activate' : 'deactivate';
+      if (confirm(`Are you sure you want to ${action} this patient?`)) {
+        // Make AJAX request to toggle patient status
+        fetch(`/admin/toggle-patient-status/${patientId}/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload(); // Reload to show updated status
+          } else {
+            alert('Error: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while updating patient status.');
+        });
+      }
+    }
+
+    // Add event listeners for patient management buttons
+    document.addEventListener('DOMContentLoaded', function() {
+      // View patient details
+      document.querySelectorAll('.view-patient-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const patientId = this.getAttribute('data-patient-id');
+          viewPatientDetails(patientId);
+        });
+      });
+
+      // Edit patient
+      document.querySelectorAll('.edit-patient-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const patientId = this.getAttribute('data-patient-id');
+          editPatient(patientId);
+        });
+      });
+
+      // Toggle patient status
+      document.querySelectorAll('.toggle-patient-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const patientId = this.getAttribute('data-patient-id');
+          const currentStatus = this.getAttribute('data-current-status') === 'true';
+          togglePatientStatus(patientId, currentStatus);
+        });
+      });
+    });
+
+    // ---------- Export Patients Function ----------
+    function exportPatients() {
+      const table = document.querySelector('#section-patients table');
+      if (!table) {
+        alert('No data to export');
+        return;
+      }
+
+      let csv = 'ID,Patient Name,Username,Blood Group,Age,Gender,Contact,Address,Emergency Contact,Registered Date,Status\n';
+
+      const rows = table.querySelectorAll('tbody tr');
+      rows.forEach(row => {
+        if (row.cells.length > 1) { // Skip empty state row
+          const cells = row.querySelectorAll('td');
+          const rowData = [];
+          cells.forEach((cell, index) => {
+            let text = cell.textContent.trim();
+            
+            // Clean up specific columns
+            if (index === 1) { // Patient name column
+              text = text.replace(/@\w+/g, '').trim(); // Remove username
+            } else if (index === 5 || index === 7) { // Contact columns
+              text = text.replace(/📞/g, '').trim(); // Remove phone icon
+            } else if (index === 6) { // Address column
+              text = text.replace(/📍/g, '').trim(); // Remove location icon
+            } else if (index === 10) { // Actions column
+              return; // Skip actions column
+            }
+            
+            rowData.push('"' + text + '"');
+          });
+          if (rowData.length > 0) {
+            csv += rowData.join(',') + '\n';
+          }
+        }
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'patients_' + new Date().toISOString().split('T')[0] + '.csv';
+      a.click();
+      window.URL.revokeObjectURL(url);
     }
 
     // ---------- Export Inventory Function ----------

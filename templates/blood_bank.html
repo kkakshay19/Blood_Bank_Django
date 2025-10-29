@@ -94,12 +94,12 @@
               {% for unit in blood_units %}
               <tr class="{% if unit.expiry_date < today %}expired{% elif unit.expiry_date <= warning_date %}expiring-soon{% endif %}">
                 <td>#{{ unit.id }}</td>
-                <td>{{ unit.donor.full_name }}</td>
+                <td>{{ unit.donation.donor.full_name }}</td>
                 <td>
-                  <span class="blood-badge blood-{{ unit.blood_type|lower }}">{{ unit.blood_type }}</span>
+                  <span class="blood-badge blood-{{ unit.blood_group|lower }}">{{ unit.blood_group }}</span>
                 </td>
                 <td>{{ unit.quantity }}</td>
-                <td>{{ unit.created_at|date:"M d, Y" }}</td>
+                <td>{{ unit.donation.donation_date|date:"M d, Y" }}</td>
                 <td>
                   {{ unit.expiry_date|date:"M d, Y" }}
                   {% if unit.expiry_date < today %}
@@ -148,7 +148,7 @@
             <p>{{ expiring_units|length }} blood unit(s) will expire within 7 days.</p>
             <ul>
               {% for unit in expiring_units %}
-              <li>{{ unit.blood_type }} - Expires {{ unit.expiry_date|date:"M d, Y" }}</li>
+              <li>{{ unit.blood_group }} - Expires {{ unit.expiry_date|date:"M d, Y" }}</li>
               {% endfor %}
             </ul>
           </div>
@@ -165,7 +165,7 @@
             <p>{{ expired_units|length }} blood unit(s) have expired and should be discarded.</p>
             <ul>
               {% for unit in expired_units %}
-              <li>{{ unit.blood_type }} - Expired {{ unit.expiry_date|date:"M d, Y" }}</li>
+              <li>{{ unit.blood_group }} - Expired {{ unit.expiry_date|date:"M d, Y" }}</li>
               {% endfor %}
             </ul>
           </div>

@@ -30,10 +30,16 @@ urlpatterns = [
     path('patient/dashboard/', views.patient_dashboard, name='patient_dashboard'),
     path('patient/logout/', views.patient_logout, name='patient_logout'),
 
+    # Patient Management
+    path('admin/toggle-patient-status/<int:patient_id>/', views.toggle_patient_status, name='toggle_patient_status'),
+    path('admin/patient/<int:patient_id>/details/', views.patient_details, name='patient_details'),
+    path('admin/patient/<int:patient_id>/edit/', views.edit_patient, name='edit_patient'),
+
     # Admin actions
     path('request/<int:request_id>/approve/', views.approve_blood_request, name='approve_blood_request'),
     path('request/<int:request_id>/reject/', views.reject_blood_request, name='reject_blood_request'),
-    path('donation/<int:donation_id>/approve/', views.approve_donation, name='approve_donation'),
+    path('donation/<int:donation_id>/approve-initial/', views.approve_donation_initial, name='approve_donation_initial'),
+    path('donation/<int:donation_id>/approve-final/', views.approve_donation_final, name='approve_donation_final'),
     path('donation/<int:donation_id>/reject/', views.reject_donation, name='reject_donation'),
 
     # Timeslot Management
@@ -42,9 +48,6 @@ urlpatterns = [
     path('portal/timeslots/<int:timeslot_id>/update/', views.update_timeslot, name='update_timeslot'),
     path('portal/timeslots/<int:timeslot_id>/delete/', views.delete_timeslot, name='delete_timeslot'),
 
-    # Appointment Management
-    path('appointment/<int:donation_id>/confirm/', views.confirm_appointment, name='confirm_appointment'),
-    path('donation/<int:donation_id>/complete/', views.complete_donation, name='complete_donation'),
 
     # Blood Bank
     path('portal/blood-bank/', views.blood_bank_list, name='blood_bank_list'),

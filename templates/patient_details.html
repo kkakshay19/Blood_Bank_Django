@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Details - Blood Donor System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  {% load static %}
+  <link href="{% static 'adminmain.css' %}" rel="stylesheet">
+  <link href="{% static 'status_badges.css' %}" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <div class="logo-text">
+            <h1>Patient Details</h1>
+            <p>Blood Donor System</p>
+          </div>
+        </div>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="{% url 'admin_dashboard' %}">Back to Dashboard</a></li>
+            <li><a href="{% url 'admin_logout' %}">Logout</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="patient-details-container">
+        <!-- Patient Information Card -->
+        <div class="patient-card">
+          <div class="patient-header">
+            <div class="patient-avatar">
+              <i class="fas fa-user-injured"></i>
+            </div>
+            <div class="patient-info">
+              <h2>{{ patient.full_name }}</h2>
+              <p class="patient-id">Patient ID: #{{ patient.id }}</p>
+              <p class="patient-username">@{{ patient.user.username }}</p>
+            </div>
+            <div class="patient-status">
+              <span class="status-indicator status-{{ patient.user.is_active|yesno:'active,inactive' }}">
+                {{ patient.user.is_active|yesno:"Active,Inactive" }}
+              </span>
+            </div>
+          </div>
+
+          <div class="patient-details-grid">
+            <div class="detail-section">
+              <h3><i class="fas fa-user"></i> Personal Information</h3>
+              <div class="detail-item">
+                <label>Full Name:</label>
+                <span>{{ patient.full_name }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Age:</label>
+                <span>{{ patient.age }} years</span>
+              </div>
+              <div class="detail-item">
+                <label>Gender:</label>
+                <span>{{ patient.get_gender_display|default:"Not specified" }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Blood Group:</label>
+                <span class="blood-badge blood-{{ patient.blood_group|lower }}">
+                  {{ patient.blood_group }}
+                </span>
+              </div>
+            </div>
+
+            <div class="detail-section">
+              <h3><i class="fas fa-phone"></i> Contact Information</h3>
+              <div class="detail-item">
+                <label>Contact Number:</label>
+                <span>
+                  <a href="tel:{{ patient.contact_number }}" class="contact-link">
+                    <i class="fas fa-phone"></i> {{ patient.contact_number }}
+                  </a>
+                </span>
+              </div>
+              <div class="detail-item">
+                <label>Emergency Contact:</label>
+                <span>
+                  {% if patient.emergency_contact %}
+                    <a href="tel:{{ patient.emergency_contact }}" class="contact-link">
+                      <i class="fas fa-phone"></i> {{ patient.emergency_contact }}
+                    </a>
+                  {% else %}
+                    Not provided
+                  {% endif %}
+                </span>
+              </div>
+              <div class="detail-item">
+                <label>Address:</label>
+                <span>{{ patient.address|default:"Not provided" }}</span>
+              </div>
+            </div>
+
+            <div class="detail-section">
+              <h3><i class="fas fa-calendar"></i> Registration Information</h3>
+              <div class="detail-item">
+                <label>Registered Date:</label>
+                <span>{{ patient.created_at|date:"F d, Y" }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Last Updated:</label>
+                <span>{{ patient.updated_at|date:"F d, Y" }}</span>
+              </div>
+              <div class="detail-item">
+                <label>Account Status:</label>
+                <span class="status-indicator status-{{ patient.user.is_active|yesno:'active,inactive' }}">
+                  {{ patient.user.is_active|yesno:"Active,Inactive" }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section medical-history">
+            <h3><i class="fas fa-stethoscope"></i> Medical History</h3>
+            <div class="medical-content">
+              {{ medical_history|linebreaks }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Blood Requests History -->
+        <div class="blood-requests-card">
+          <h3><i class="fas fa-heartbeat"></i> Blood Request History</h3>
+          
+          <div class="request-stats">
+            <div class="stat-item">
+              <span class="stat-number">{{ total_requests }}</span>
+              <span class="stat-label">Total Requests</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">{{ fulfilled_requests }}</span>
+              <span class="stat-label">Fulfilled</span>
+            </div>
+            <div class="stat-item">
+              <span class="stat-number">{{ pending_requests }}</span>
+              <span class="stat-label">Pending</span>
+            </div>
+          </div>
+
+          {% if blood_requests %}
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Request Date</th>
+                  <th>Blood Group</th>
+                  <th>Quantity</th>
+                  <th>Status</th>
+                  <th>Fulfilled Quantity</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for request in blood_requests %}
+                <tr>
+                  <td>{{ request.created_at|date:"M d, Y" }}</td>
+                  <td>
+                    <span class="blood-badge blood-{{ request.blood_group|lower }}">
+                      {{ request.blood_group }}
+                    </span>
+                  </td>
+                  <td>{{ request.quantity }} units</td>
+                  <td>
+                    <span class="status-indicator status-{{ request.status }}">
+                      {{ request.get_status_display }}
+                    </span>
+                  </td>
+                  <td>
+                    {% if request.fulfilled_quantity %}
+                      {{ request.fulfilled_quantity }} units
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="empty-state">
+            <div class="empty-icon">
+              <i class="fas fa-heart"></i>
+            </div>
+            <h4>No Blood Requests</h4>
+            <p>This patient has not made any blood requests yet.</p>
+          </div>
+          {% endif %}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <a href="{% url 'edit_patient' patient.id %}" class="btn">
+            <i class="fas fa-edit"></i> Edit Patient
+          </a>
+          <button class="btn {{ patient.user.is_active|yesno:'danger,success' }}" 
+                  onclick="togglePatientStatus({{ patient.id }}, {{ patient.user.is_active|yesno:'false,true' }})">
+            <i class="fas fa-{{ patient.user.is_active|yesno:'ban,check' }}"></i>
+            {{ patient.user.is_active|yesno:'Deactivate,Activate' }} Patient
+          </button>
+          <a href="{% url 'admin_dashboard' %}" class="btn secondary">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function togglePatientStatus(patientId, currentStatus) {
+      const action = currentStatus ? 'activate' : 'deactivate';
+      if (confirm(`Are you sure you want to ${action} this patient?`)) {
+        fetch(`/admin/toggle-patient-status/${patientId}/`, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({})
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            location.reload();
+          } else {
+            alert('Error: ' + data.message);
+          }
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred while updating patient status.');
+        });
+      }
+    }
+  </script>
+</body>
+</html>

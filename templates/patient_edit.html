@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit Patient - Blood Donor System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  {% load static %}
+  <link href="{% static 'adminmain.css' %}" rel="stylesheet">
+  <link href="{% static 'status_badges.css' %}" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="header-content">
+        <div class="logo">
+          <div class="logo-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <div class="logo-text">
+            <h1>Edit Patient</h1>
+            <p>Blood Donor System</p>
+          </div>
+        </div>
+        <nav>
+          <ul class="nav-links">
+            <li><a href="{% url 'admin_dashboard' %}">Back to Dashboard</a></li>
+            <li><a href="{% url 'patient_details' patient.id %}">View Details</a></li>
+            <li><a href="{% url 'admin_logout' %}">Logout</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="form-container">
+        <div class="form-header">
+          <h2><i class="fas fa-edit"></i> {{ title }}</h2>
+          <p>Update patient information and medical details</p>
+        </div>
+
+        <form method="post" class="patient-form">
+          {% csrf_token %}
+          
+          <div class="form-section">
+            <h3><i class="fas fa-user"></i> Personal Information</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="{{ form.full_name.id_for_label }}">Full Name *</label>
+                {{ form.full_name }}
+                {% if form.full_name.errors %}
+                  <div class="error-messages">
+                    {% for error in form.full_name.errors %}
+                      <span class="error">{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+              <div class="form-group">
+                <label for="{{ form.age.id_for_label }}">Age *</label>
+                {{ form.age }}
+                {% if form.age.errors %}
+                  <div class="error-messages">
+                    {% for error in form.age.errors %}
+                      <span class="error">{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="{{ form.blood_group.id_for_label }}">Blood Group *</label>
+                {{ form.blood_group }}
+                {% if form.blood_group.errors %}
+                  <div class="error-messages">
+                    {% for error in form.blood_group.errors %}
+                      <span class="error">{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+              <div class="form-group">
+                <label for="{{ form.gender.id_for_label }}">Gender</label>
+                {{ form.gender }}
+                {% if form.gender.errors %}
+                  <div class="error-messages">
+                    {% for error in form.gender.errors %}
+                      <span class="error">{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3><i class="fas fa-phone"></i> Contact Information</h3>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="{{ form.contact_number.id_for_label }}">Contact Number *</label>
+                {{ form.contact_number }}
+                {% if form.contact_number.errors %}
+                  <div class="error-messages">
+                    {% for error in form.contact_number.errors %}
+                      <span class="error">{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+              <div class="form-group">
+                <label for="{{ form.emergency_contact.id_for_label }}">Emergency Contact</label>
+                {{ form.emergency_contact }}
+                {% if form.emergency_contact.errors %}
+                  <div class="error-messages">
+                    {% for error in form.emergency_contact.errors %}
+                      <span class="error">{{ error }}</span>
+                    {% endfor %}
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="{{ form.address.id_for_label }}">Address</label>
+              {{ form.address }}
+              {% if form.address.errors %}
+                <div class="error-messages">
+                  {% for error in form.address.errors %}
+                    <span class="error">{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3><i class="fas fa-stethoscope"></i> Medical Information</h3>
+            <div class="form-group">
+              <label for="{{ form.medical_history.id_for_label }}">Medical History</label>
+              {{ form.medical_history }}
+              {% if form.medical_history.errors %}
+                <div class="error-messages">
+                  {% for error in form.medical_history.errors %}
+                    <span class="error">{{ error }}</span>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn">
+              <i class="fas fa-save"></i> Update Patient
+            </button>
+            <a href="{% url 'patient_details' patient.id %}" class="btn secondary">
+              <i class="fas fa-eye"></i> View Details
+            </a>
+            <a href="{% url 'admin_dashboard' %}" class="btn secondary">
+              <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <style>
+    .form-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .form-header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .form-header h2 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .form-header p {
+      color: #666;
+      margin: 0;
+    }
+
+    .form-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .form-section h3 {
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.1em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-group label {
+      font-weight: 500;
+      margin-bottom: 5px;
+      color: #333;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+    }
+
+    .error-messages {
+      margin-top: 5px;
+    }
+
+    .error {
+      color: #dc3545;
+      font-size: 12px;
+      display: block;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 2px solid #f0f0f0;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn:not(.secondary) {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn:not(.secondary):hover {
+      background: #0056b3;
+    }
+
+    .btn.secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn.secondary:hover {
+      background: #545b62;
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+      
+      .form-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</body>
+</html>

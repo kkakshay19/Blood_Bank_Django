@@ -264,9 +264,13 @@
             </form>
             {% endif %}
 
-            <!-- Booking Form (shown after approval) -->
+            <!-- Booking Form (shown after initial approval) -->
             {% if approved_donations %}
             <div class="booking-section">
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <p><strong>Great news!</strong> Your donation request has been initially approved. You can now book your appointment slot.</p>
+              </div>
               <h4>Book Your Appointment</h4>
               <form method="post" class="request-form">
                 {% csrf_token %}
@@ -324,6 +328,7 @@
                     <th><i class="fas fa-hashtag"></i> ID</th>
                     <th><i class="fas fa-droplet"></i> Quantity</th>
                     <th><i class="fas fa-calendar"></i> Date</th>
+                    <th><i class="fas fa-clock"></i> Timeslot</th>
                     <th><i class="fas fa-info-circle"></i> Status</th>
                   </tr>
                 </thead>
@@ -334,14 +339,33 @@
                     <td><strong>{{ donation.quantity }}</strong> units</td>
                     <td>{{ donation.donation_date|date:"M d, Y" }}</td>
                     <td>
+                      {% if donation.timeslot %}
+                        {{ donation.timeslot.date|date:"M d" }} {{ donation.timeslot.start_time }}
+                      {% else %}
+                        <span class="text-muted">-</span>
+                      {% endif %}
+                    </td>
+                    <td>
                       <span class="status-pill status-{{ donation.status }}">
-                        {{ donation.get_status_display }}
+                        {% if donation.status == 'pending_initial' %}
+                          <i class="fas fa-clock"></i> Pending Initial Approval
+                        {% elif donation.status == 'initial_approved' %}
+                          <i class="fas fa-check"></i> Can Book Slot
+                        {% elif donation.status == 'slot_confirmed' %}
+                          <i class="fas fa-calendar-check"></i> Slot Confirmed
+                        {% elif donation.status == 'final_approved' %}
+                          <i class="fas fa-check-double"></i> Completed
+                        {% elif donation.status == 'rejected' %}
+                          <i class="fas fa-times"></i> Rejected
+                        {% else %}
+                          {{ donation.get_status_display }}
+                        {% endif %}
                       </span>
                     </td>
                   </tr>
                   {% empty %}
                   <tr>
-                    <td colspan="4" class="empty-state">
+                    <td colspan="5" class="empty-state">
                       <div class="empty-icon">
                         <i class="fas fa-inbox"></i>
                       </div>
