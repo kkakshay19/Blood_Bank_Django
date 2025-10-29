@@ -1,0 +1,1044 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+  color: #333;
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 25px 0;
+  border-bottom: 3px solid #e53e3e;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 50px;
+  height: 50px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 24px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.logo-text h1 {
+  color: white;
+  font-size: 28px;
+  margin: 0;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.logo-text p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  margin: 0;
+  font-weight: 500;
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+  padding: 15px 25px;
+  border-radius: 25px;
+  font-weight: 500;
+  transition: all 0.4s ease;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-links a:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.nav-links a i {
+  font-size: 16px;
+  transition: transform 0.3s ease;
+}
+
+.nav-links a:hover i {
+  transform: scale(1.1);
+}
+
+.dashboard-container {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.dashboard-header {
+  background: #e53e3e;
+  padding: 20px;
+  text-align: center;
+  color: white;
+  border-radius: 10px 10px 0 0;
+}
+
+.dashboard-header h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.dashboard-content {
+  padding: 20px;
+}
+
+.sidebar {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.sidebar h3 {
+  color: #333;
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.nav-menu {
+  list-style: none;
+}
+
+.nav-menu li {
+  margin-bottom: 5px;
+}
+
+.nav-menu button {
+  width: 100%;
+  text-align: left;
+  padding: 10px 15px;
+  border: none;
+  background: #f5f5f5;
+  color: #333;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.nav-menu button:hover {
+  background: #e53e3e;
+  color: white;
+}
+
+.nav-menu button.active {
+  background: #e53e3e;
+  color: white;
+}
+
+.section {
+  display: none;
+}
+
+.section.active {
+  display: block;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.stat-card .stat-number {
+  font-size: 32px;
+  font-weight: bold;
+  color: #e53e3e;
+  margin-bottom: 10px;
+}
+
+.stat-card .stat-label {
+  color: #666;
+  font-size: 14px;
+}
+
+.data-table {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+.data-table h3 {
+  color: #333;
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.table-scroll {
+  max-height: 400px;
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: #f5f5f5;
+  color: #333;
+  font-weight: bold;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.badge.approved {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.badge.rejected {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #e53e3e;
+  color: white;
+  text-decoration: none;
+  border: 1px solid #e53e3e;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.2s ease;
+  margin-right: 0.5rem;
+}
+
+.btn:hover {
+  background: #c53030;
+  border-color: #b42929;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(229, 62, 62, 0.3);
+}
+
+.btn.secondary {
+  background: #6c757d;
+  border-color: #6c757d;
+  color: rgb(255, 255, 255);
+}
+
+.btn.secondary:hover {
+  background: #5a6268;
+  border-color: #545b62;
+}
+
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.modal-header h3 {
+  color: #333;
+  font-size: 18px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+}
+
+.close-btn:hover {
+  color: #e53e3e;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #333;
+  font-weight: bold;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #e53e3e;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 10px;
+  border-top: 1px solid #ddd;
+}
+
+.back-link {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.back-link a {
+  color: #e53e3e;
+  text-decoration: none;
+  padding: 10px 20px;
+  border: 1px solid #e53e3e;
+  border-radius: 5px;
+}
+
+.back-link a:hover {
+  background: #e53e3e;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .nav-links {
+    margin-top: 15px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .nav-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .nav-menu li {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+
+/* User info styles */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+.user-role {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: white !important;
+  padding: 0.5rem 1rem;
+  border-radius: 25px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+
+.user-role strong {
+  font-weight: 700 !important;
+  color: white !important;
+}
+
+.user-role i {
+  font-size: 0.875rem;
+  color: white !important;
+}
+
+.user-name {
+  color: white !important;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* Responsive adjustments for user info */
+@media (max-width: 768px) {
+  .user-info {
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-left: 0;
+    margin-top: 1rem;
+  }
+}
+
+/* ---------- Patient Management Styles ---------- */
+.text-muted {
+  color: #6c757d;
+  font-size: 0.875em;
+}
+
+.contact-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.contact-link:hover {
+  text-decoration: underline;
+  color: #0056b3;
+}
+
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.25rem;
+}
+
+.status-indicator.status-active {
+  color: #155724;
+  background-color: #d4edda;
+}
+
+.status-indicator.status-inactive {
+  color: #721c24;
+  background-color: #f8d7da;
+}
+
+.patient-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.btn.small {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-radius: 0.25rem;
+}
+
+.btn.success {
+  background: #28a745;
+  color: white;
+  border: 1px solid #28a745;
+}
+
+.btn.success:hover {
+  background: #218838;
+  border-color: #1e7e34;
+}
+
+.btn.danger {
+  background: #dc3545;
+  color: white;
+  border: 1px solid #dc3545;
+}
+
+.btn.danger:hover {
+  background: #c82333;
+  border-color: #bd2130;
+}
+
+/* ---------- Status Badge Styles ---------- */
+.status-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: 0.25rem;
+  text-transform: uppercase;
+}
+
+.status-badge.status-pending_initial {
+  color: #856404;
+  background-color: #fff3cd;
+}
+
+.status-badge.status-initial_approved {
+  color: #0c5460;
+  background-color: #d1ecf1;
+}
+
+.status-badge.status-slot_confirmed {
+  color: #0c63e4;
+  background-color: #cce5ff;
+}
+
+.status-badge.status-final_approved {
+  color: #155724;
+  background-color: #d4edda;
+}
+
+.status-badge.status-rejected {
+  color: #721c24;
+  background-color: #f8d7da;
+}
+
+/* ---------- Request Actions Styles ---------- */
+.request-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.blood-request-row {
+  transition: background-color 0.2s ease;
+}
+
+.blood-request-row:hover {
+  background-color: #f8f9fa;
+}
+
+/* ---------- Additional Button Styles ---------- */
+.btn {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: #e53e3e;
+  color: white;
+  text-decoration: none;
+  border: 1px solid #e53e3e;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: center;
+  transition: all 0.2s ease;
+  margin-right: 0.5rem;
+}
+
+.btn:hover {
+  background: #c53030;
+  border-color: #b42929;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(229, 62, 62, 0.3);
+}
+
+.btn.secondary {
+  background: #6c757d;
+  border-color: #6c757d;
+  color: white;
+}
+
+.btn.secondary:hover {
+  background: #5a6268;
+  border-color: #545b62;
+}
+
+/* ---------- Responsive Design for Patient Management ---------- */
+@media (max-width: 768px) {
+  .patient-actions {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .request-actions {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .btn.small {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}
+
+/* ---------- Blood Bank Section Styles ---------- */
+
+/* Search and Export Section */
+.search-export-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  gap: 15px;
+}
+
+.search-input {
+  flex: 1;
+  padding: 10px 15px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #e53e3e;
+}
+
+.export-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s ease;
+}
+
+.export-btn:hover {
+  background: #218838;
+}
+
+/* Blood Type Summary */
+.blood-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.blood-type-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: 2px solid #f1f3f4;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.blood-type-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.blood-type-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.blood-icon {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #e53e3e, #c53030);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+}
+
+.blood-type-info h3 {
+  color: #333;
+  font-size: 18px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.unit-count {
+  color: #666;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.blood-type-status .status {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status.good {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status.moderate {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status.low {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+/* Blood Badges */
+.blood-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.blood-a {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.blood-b {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.blood-ab {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.blood-o {
+  background: #e8f5e8;
+  color: #388e3c;
+}
+
+/* Status Labels */
+.expired-label {
+  color: #dc3545;
+  font-weight: 600;
+  font-size: 11px;
+  margin-left: 5px;
+}
+
+.warning-label {
+  color: #ffc107;
+  font-weight: 600;
+  font-size: 11px;
+  margin-left: 5px;
+}
+
+/* Status Indicators */
+.status.expired {
+  color: #dc3545;
+  font-weight: 600;
+}
+
+.status.expiring {
+  color: #ffc107;
+  font-weight: 600;
+}
+
+.status.available {
+  color: #28a745;
+  font-weight: 600;
+}
+
+/* Table Row Highlights */
+tr.expired {
+  background-color: #fff5f5;
+}
+
+tr.expiring-soon {
+  background-color: #fffbf0;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.empty-icon {
+  font-size: 48px;
+  color: #ccc;
+  margin-bottom: 15px;
+}
+
+.empty-state h4 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+/* Inventory Alerts */
+.alerts-section {
+  margin-top: 30px;
+}
+
+.alerts-section h3 {
+  color: #333;
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.alert-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid;
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+}
+
+.alert-card.warning {
+  border-left-color: #ffc107;
+}
+
+.alert-card.danger {
+  border-left-color: #dc3545;
+}
+
+.alert-card.info {
+  border-left-color: #17a2b8;
+}
+
+.alert-card.success {
+  border-left-color: #28a745;
+}
+
+.alert-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.alert-card.warning .alert-icon {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.alert-card.danger .alert-icon {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.alert-card.info .alert-icon {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.alert-card.success .alert-icon {
+  background: #d4edda;
+  color: #155724;
+}
+
+.alert-content h4 {
+  color: #333;
+  font-size: 16px;
+  margin: 0 0 8px 0;
+  font-weight: 600;
+}
+
+.alert-content p {
+  color: #666;
+  margin: 0 0 10px 0;
+  font-size: 14px;
+}
+
+.alert-content ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.alert-content li {
+  color: #555;
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+
+/* Responsive Design for Blood Bank */
+@media (max-width: 768px) {
+  .search-export-section {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .blood-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .blood-type-card {
+    padding: 15px;
+  }
+
+  .blood-type-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 10px;
+  }
+
+  .alert-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .alert-icon {
+    align-self: center;
+  }
+}
+
+/* Header user info - explicit override */
+header {
+  background: linear-gradient(135deg, #FFB3D9 0%, #E5B3FF 100%) !important;
+}
+
+header .user-info {
+  display: flex !important;
+  align-items: center !important;
+  gap: 1rem !important;
+}
+
+header .user-role {
+  background: rgba(255, 255, 255, 0.6) !important;
+  color: #6B3C6D !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 25px !important;
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+}
+
+header .user-role strong {
+  color: #6B3C6D !important;
+  font-weight: 700 !important;
+}
+
+header .user-role i {
+  color: #6B3C6D !important;
+}
+
+header .user-name {
+  color: #5D2E5F !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+}
