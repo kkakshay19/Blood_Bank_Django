@@ -32,6 +32,10 @@ if RENDER_EXTERNAL_HOSTNAME:
 else:
     ALLOWED_HOSTS = ['localhost','127.0.0.1']
 
+# CSRF for Render
+if RENDER_EXTERNAL_HOSTNAME:
+    CSRF_TRUSTED_ORIGINS = [f"https://{RENDER_EXTERNAL_HOSTNAME}"]
+
 
 
 # Application definition
@@ -79,17 +83,26 @@ WSGI_APPLICATION = 'mywebsite.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bloodbank',
-        'USER': 'root',
-        'PASSWORD': 'Akshay@125*',
-        'HOST': 'localhost',
-        'PORT': '3306',
+if RENDER_EXTERNAL_HOSTNAME:
+    # Use SQLite on Render for simplicity (no external DB needed)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
     }
-}
+else:
+    # Local: use your MySQL settings
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.mysql',
+            'NAME': 'bloodbank',
+            'USER': 'root',
+            'PASSWORD': 'Akshay@125*',
+            'HOST': 'localhost',
+            'PORT': '3306',
+        }
+    }
 
 
 
