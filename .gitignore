@@ -17,4 +17,4 @@ venv/
 .idea/
 
 #Database
-*.sql
+*.sqlite3
