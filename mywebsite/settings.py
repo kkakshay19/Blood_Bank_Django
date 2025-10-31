@@ -28,12 +28,13 @@ SECRET_KEY = 'django-insecure-re)hv&z5*%0@0kvy-vg+f%y74go#x@-o9h8r#@rcvco7$i(s$7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS = [RENDER_EXTERNAL_HOSTNAME,'localhost','127.0.0.1']
-else:
-    ALLOWED_HOSTS = ['localhost','127.0.0.1','web-production-79f28.up.railway.app']
+RAILWAY_STATIC_URL = os.environ.get('RAILWAY_STATIC_URL')
+RAILWAY_URL = os.environ.get('RAILWAY_URL')
 
+if RAILWAY_URL:
+    ALLOWED_HOSTS = [RAILWAY_URL, '.railway.app', 'localhost', '127.0.0.1']
+else:
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'web-production-79f28.up.railway.app']
 
 
 # Application definition
