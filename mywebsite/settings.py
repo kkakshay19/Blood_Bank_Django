@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
-from urllib.parse import urlparse
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -28,13 +27,22 @@ SECRET_KEY = 'django-insecure-re)hv&z5*%0@0kvy-vg+f%y74go#x@-o9h8r#@rcvco7$i(s$7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+# Get Railway environment variables
 RAILWAY_STATIC_URL = os.environ.get('RAILWAY_STATIC_URL')
 RAILWAY_URL = os.environ.get('RAILWAY_URL')
 
+# Configure ALLOWED_HOSTS for Railway
 if RAILWAY_URL:
     ALLOWED_HOSTS = [RAILWAY_URL, '.railway.app', 'localhost', '127.0.0.1']
 else:
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'web-production-79f28.up.railway.app']
+    # If RAILWAY_URL is not set, use wildcard to allow any Railway subdomain
+    ALLOWED_HOSTS = ['.railway.app', 'localhost', '127.0.0.1']
+
+# CSRF Trusted Origins for Railway (wildcards not supported, so we use .railway.app suffix matching)
+CSRF_TRUSTED_ORIGINS = []
+if RAILWAY_URL:
+    CSRF_TRUSTED_ORIGINS.append(f'https://{RAILWAY_URL}')
+CSRF_TRUSTED_ORIGINS.extend(['https://localhost', 'http://localhost'])
 
 
 # Application definition
